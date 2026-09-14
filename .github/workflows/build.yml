@@ -22,6 +22,7 @@ jobs:
         with:
           accept-android-sdk-licenses: false
           log-accepted-android-sdk-licenses: false
+          packages: 'platform-tools'
       - name: Accept SDK licenses (直写哈希, 绕过新runner镜像上崩掉的 sdkmanager --licenses)
         run: |
           mkdir -p "$ANDROID_HOME/licenses"
