@@ -19,13 +19,27 @@ jobs:
           distribution: 'temurin'
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
-      - name: Install NDK + CMake
+      - name: Install NDK + CMake + ccache
         run: |
           echo "y" | sdkmanager --install "ndk;27.2.12479018" "cmake;3.22.1" "platforms;android-36" "build-tools;36.0.0" > /dev/null
+          sudo apt-get update -qq && sudo apt-get install -y ccache
           echo "sdk.dir=$ANDROID_HOME" > local.properties
           echo "ndk.dir=$ANDROID_HOME/ndk/27.2.12479018" >> local.properties
-      - name: Build Standalone (Afat)
+      - name: ccache cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.ccache
+          key: ccache-${{ github.sha }}
+          restore-keys: |
+            ccache-
+      - name: ccache init
+        run: |
+          ccache -M 4G
+          ccache -z
+      - name: Build Standalone (arm64)
         run: ./gradlew :TMessagesProj_AppStandalone:assembleAfatStandalone --stacktrace --no-daemon
+      - name: ccache stats
+        run: ccache -s
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
