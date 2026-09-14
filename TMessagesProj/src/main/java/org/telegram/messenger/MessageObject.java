@@ -224,6 +224,9 @@ public class MessageObject {
     public String monthKey;
     public boolean deleted;
     public boolean deletedByThanos;
+    // ★奶龙客户端: 防撤回标记(被别人撤回但仍显示, 右下角标"已删除") + 无视编辑原文
+    public boolean nailongDeleted;
+    public CharSequence nailongOriginalText;
     public float audioProgress;
     public float forceSeekTo = -1;
     public int audioProgressMs;

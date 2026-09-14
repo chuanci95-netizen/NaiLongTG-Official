@@ -233,6 +233,9 @@ public class SharedConfig {
 
     public static boolean saveIncomingPhotos;
     public static boolean allowScreenCapture;
+    // ★奶龙客户端: 防撤回(保留被删消息+标已删除) / 无视编辑(显示编辑前原文), 默认开启
+    public static boolean nailongShowDeleted = true;
+    public static boolean nailongShowEdited = true;
     public static int lastPauseTime;
     public static boolean isWaitingForPasscodeEnter;
     public static boolean useFingerprintLock = true;
@@ -435,6 +438,8 @@ public class SharedConfig {
             try {
                 SharedPreferences preferences = ApplicationLoader.applicationContext.getSharedPreferences("userconfing", Context.MODE_PRIVATE);
                 SharedPreferences.Editor editor = preferences.edit();
+                editor.putBoolean("nailongShowDeleted", nailongShowDeleted);
+                editor.putBoolean("nailongShowEdited", nailongShowEdited);
                 editor.putBoolean("saveIncomingPhotos", saveIncomingPhotos);
                 editor.putString("passcodeHash1", passcodeHash);
                 editor.putString("passcodeSalt", passcodeSalt.length > 0 ? Base64.encodeToString(passcodeSalt, Base64.DEFAULT) : "");
@@ -514,6 +519,8 @@ public class SharedConfig {
             BackgroundActivityPrefs.prefs = ApplicationLoader.applicationContext.getSharedPreferences("background_activity", Context.MODE_PRIVATE);
 
             SharedPreferences preferences = ApplicationLoader.applicationContext.getSharedPreferences("userconfing", Context.MODE_PRIVATE);
+            nailongShowDeleted = preferences.getBoolean("nailongShowDeleted", true);
+            nailongShowEdited = preferences.getBoolean("nailongShowEdited", true);
             saveIncomingPhotos = preferences.getBoolean("saveIncomingPhotos", false);
             passcodeHash = preferences.getString("passcodeHash1", "");
             appLocked = preferences.getBoolean("appLocked", false);

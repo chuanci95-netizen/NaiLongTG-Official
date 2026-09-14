@@ -22289,7 +22289,19 @@ public class ChatActivity extends BaseFragment implements
                 scheduleNowDialog.dismiss();
                 scheduleNowDialog = null;
             }
-            processDeletedMessages(markAsDeletedMessages, channelId, sent, !movedToScheduled);
+            // ★奶龙客户端: 防撤回 - 被撤回的消息保留在界面, 标记nailongDeleted由ChatMessageCell在右下角画"已删除"
+            boolean nailongKept = false;
+            if (SharedConfig.nailongShowDeleted && !scheduled && !movedToScheduled && chatMode != MODE_SCHEDULED && !messages.isEmpty()) {
+                for (MessageObject m : messages) {
+                    if (m != null && !m.nailongDeleted) { m.nailongDeleted = true; nailongKept = true; }
+                }
+                if (nailongKept) {
+                    updateVisibleRows();
+                }
+            }
+            if (!nailongKept) {
+                processDeletedMessages(markAsDeletedMessages, channelId, sent, !movedToScheduled);
+            }
             if (movedToScheduled && chatMode != ChatActivity.MODE_SCHEDULED) {
                 getMessagesController().forceNoReload(dialog_id, ChatActivity.MODE_SCHEDULED);
                 openScheduledMessages(scheduledMessageId, true);
@@ -26658,6 +26670,17 @@ public class ChatActivity extends BaseFragment implements
             }
 
             addToPolls(messageObject, old);
+            // ★奶龙客户端: 无视编辑 - 编辑后的消息末尾追加"编辑前"原文, 编辑前+编辑后都能看到
+            if (SharedConfig.nailongShowEdited && messageObject.isEdited()
+                    && messageObject.type == MessageObject.TYPE_TEXT
+                    && messageObject.messageText != null) {
+                CharSequence nlOrig = old.nailongOriginalText != null ? old.nailongOriginalText : old.messageText;
+                if (nlOrig != null && !nlOrig.toString().equals(messageObject.messageText.toString())) {
+                    messageObject.nailongOriginalText = nlOrig;
+                    messageObject.messageText = TextUtils.concat(messageObject.messageText, "\n\n✏️ 编辑前:\n", nlOrig);
+                    messageObject.generateLayout(null);
+                }
+            }
             if (old.richCheckboxEcho && messageObject.type == MessageObject.TYPE_ARTICLE && old.richLayout != null && messageObject.messageOwner != null) {
                 messageObject.richLayout = old.richLayout;
                 messageObject.messageOwner.rich_message = old.messageOwner.rich_message;
