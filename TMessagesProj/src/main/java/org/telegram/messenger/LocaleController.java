@@ -730,6 +730,11 @@ public class LocaleController {
         try {
             SharedPreferences preferences = MessagesController.getGlobalMainSettings();
             String lang = preferences.getString("language", null);
+            // ★奶龙客户端: 首次运行强制默认简体中文(之后尊重用户切换)
+            if (lang == null && !preferences.getBoolean("nailong_lang_defaulted", false)) {
+                lang = "zh_cn";
+                preferences.edit().putBoolean("nailong_lang_defaulted", true).apply();
+            }
             if (lang != null) {
                 currentInfo = getLanguageFromDict(lang);
                 if (currentInfo != null) {
