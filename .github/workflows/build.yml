@@ -19,6 +19,19 @@ jobs:
           distribution: 'temurin'
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          accept-android-sdk-licenses: false
+          log-accepted-android-sdk-licenses: false
+      - name: Accept SDK licenses (直写哈希, 绕过新runner镜像上崩掉的 sdkmanager --licenses)
+        run: |
+          mkdir -p "$ANDROID_HOME/licenses"
+          printf '\n8933bad161af4178b1185d1a37fbf41ea5269c55\nd56f5187479451eabf01fb78af6dfcb131a6481e\n24333f8a63b6825ea9c5514f83c2829b004d1fee\n' > "$ANDROID_HOME/licenses/android-sdk-license"
+          printf '\n84831b9409646a918e30573bab4c9c91346d8abd\n504667f4c0de7af1a06de9f4b1727b84351f2910\n' > "$ANDROID_HOME/licenses/android-sdk-preview-license"
+          printf '\n601085b94cd77f0b54ff86406957099ebe79c4d6\n' > "$ANDROID_HOME/licenses/android-googletv-license"
+          printf '\n859f317696f67ef3d7f30a50a5560e7834b43903\n33b6a2b64607f11b759f320ef9dff4ae5c47d97a\n' > "$ANDROID_HOME/licenses/android-sdk-arm-dbt-license"
+          printf '\nd975f751698a77b662f1254ddbeed3901e976f5a\n' > "$ANDROID_HOME/licenses/intel-android-extra-license"
+          timeout 120 bash -c 'yes | sdkmanager --licenses' >/dev/null 2>&1 || true
+          ls -1 "$ANDROID_HOME/licenses"
       - name: Install NDK + CMake + ccache
         run: |
           echo "y" | sdkmanager --install "ndk;27.2.12479018" "cmake;3.22.1" "platforms;android-36" "build-tools;36.0.0" > /dev/null
