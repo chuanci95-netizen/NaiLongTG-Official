@@ -175,7 +175,14 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
         }
 
         public void setProxy(SharedConfig.ProxyInfo proxyInfo) {
-            textView.setText(proxyInfo.address + ":" + proxyInfo.port);
+            // ★奶龙客户端: 内置代理只显示名字, 隐藏真实IP/端口/密钥 + 隐藏info按钮(防止进设置查看/分享密钥)
+            if (proxyInfo.builtIn && proxyInfo.name != null) {
+                textView.setText(proxyInfo.name);
+                checkImageView.setVisibility(GONE);
+            } else {
+                textView.setText(proxyInfo.address + ":" + proxyInfo.port);
+                checkImageView.setVisibility(VISIBLE);
+            }
             currentInfo = proxyInfo;
         }
 
