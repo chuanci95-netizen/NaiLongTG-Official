@@ -39,6 +39,7 @@ public class NaiLongSettingsActivity extends BaseFragment {
     private static final int CAT_MESSAGE = 1;
     private static final int CAT_PRIVACY = 2;
     private static final int CAT_CLEAN = 3;
+    private static final int CAT_DOWNLOAD = 4;
 
     // 开关id
     private static final int ID_SHOW_DELETED = 1;
@@ -46,6 +47,7 @@ public class NaiLongSettingsActivity extends BaseFragment {
     private static final int ID_DISABLE_SECURE = 3;
     private static final int ID_ALLOW_SAVE = 4;
     private static final int ID_NO_SPONSORED = 5;
+    private static final int ID_FAST_DOWNLOAD = 6;
 
     private final int category;
 
@@ -62,6 +64,7 @@ public class NaiLongSettingsActivity extends BaseFragment {
             case CAT_MESSAGE: return "消息类";
             case CAT_PRIVACY: return "隐私与安全";
             case CAT_CLEAN: return "净化";
+            case CAT_DOWNLOAD: return "下载与媒体";
             default: return "高级设置";
         }
     }
@@ -86,9 +89,10 @@ public class NaiLongSettingsActivity extends BaseFragment {
         if (category == CAT_ROOT) {
             items.add(new Item(VIEW_TYPE_HEADER, 0, "功能分类", null));
             items.add(new Item(VIEW_TYPE_FOLDER, CAT_MESSAGE, "消息类", "防撤回 / 无视编辑"));
+            items.add(new Item(VIEW_TYPE_FOLDER, CAT_DOWNLOAD, "下载与媒体", "下载加速"));
             items.add(new Item(VIEW_TYPE_FOLDER, CAT_PRIVACY, "隐私与安全", "去截图 / 破解转发保存"));
             items.add(new Item(VIEW_TYPE_FOLDER, CAT_CLEAN, "净化", "去除频道广告"));
-            items.add(new Item(VIEW_TYPE_SHADOW, 0, "更多功能(下载加速/界面美化/频道群组等)陆续加入各分类。", null));
+            items.add(new Item(VIEW_TYPE_SHADOW, 0, "更多功能(界面美化/频道群组/翻译等)陆续加入各分类。", null));
         } else if (category == CAT_MESSAGE) {
             items.add(new Item(VIEW_TYPE_HEADER, 0, "消息类", null));
             items.add(new Item(VIEW_TYPE_CHECK, ID_SHOW_DELETED, "防撤回(保留被撤回的消息)", null));
@@ -103,6 +107,10 @@ public class NaiLongSettingsActivity extends BaseFragment {
             items.add(new Item(VIEW_TYPE_HEADER, 0, "净化", null));
             items.add(new Item(VIEW_TYPE_CHECK, ID_NO_SPONSORED, "去除频道广告", null));
             items.add(new Item(VIEW_TYPE_SHADOW, 0, "隐藏频道里的官方推广(广告)消息。", null));
+        } else if (category == CAT_DOWNLOAD) {
+            items.add(new Item(VIEW_TYPE_HEADER, 0, "下载与媒体", null));
+            items.add(new Item(VIEW_TYPE_CHECK, ID_FAST_DOWNLOAD, "下载加速", null));
+            items.add(new Item(VIEW_TYPE_SHADOW, 0, "拉高并发分片请求数, 大幅提升文件/视频下载速度(网络越好越明显)。", null));
         }
     }
 
@@ -113,6 +121,7 @@ public class NaiLongSettingsActivity extends BaseFragment {
             case ID_DISABLE_SECURE: return SharedConfig.nailongDisableFlagSecure;
             case ID_ALLOW_SAVE: return SharedConfig.nailongAllowSaveRestricted;
             case ID_NO_SPONSORED: return SharedConfig.nailongNoSponsored;
+            case ID_FAST_DOWNLOAD: return SharedConfig.nailongFastDownload;
         }
         return false;
     }
@@ -124,6 +133,7 @@ public class NaiLongSettingsActivity extends BaseFragment {
             case ID_DISABLE_SECURE: SharedConfig.nailongDisableFlagSecure = !SharedConfig.nailongDisableFlagSecure; break;
             case ID_ALLOW_SAVE: SharedConfig.nailongAllowSaveRestricted = !SharedConfig.nailongAllowSaveRestricted; break;
             case ID_NO_SPONSORED: SharedConfig.nailongNoSponsored = !SharedConfig.nailongNoSponsored; break;
+            case ID_FAST_DOWNLOAD: SharedConfig.nailongFastDownload = !SharedConfig.nailongFastDownload; break;
         }
         SharedConfig.saveConfig();
     }

@@ -295,6 +295,13 @@ public class FileLoadOperation {
             maxDownloadRequests = 4;
             maxDownloadRequestsBig = 4;
         }
+        // ★奶龙客户端: 下载加速 - 拉高并发分片请求数+大分片(更多并行=更快下载)
+        if (SharedConfig.nailongFastDownload && !forceSmallChunk) {
+            downloadChunkSizeBig = 1024 * 512;
+            maxDownloadRequests = 16;
+            maxDownloadRequestsBig = 16;
+            maxDownloadRequestsAnimation = 16;
+        }
         maxCdnParts = (int) (FileLoader.DEFAULT_MAX_FILE_SIZE / downloadChunkSizeBig);
     }
 

@@ -240,6 +240,8 @@ public class SharedConfig {
     public static boolean nailongNoSponsored = true;
     public static boolean nailongAllowSaveRestricted = true;
     public static boolean nailongDisableFlagSecure = true;
+    // ★奶龙客户端: 下载加速(拉高并发分片), 默认开启
+    public static boolean nailongFastDownload = true;
     public static int lastPauseTime;
     public static boolean isWaitingForPasscodeEnter;
     public static boolean useFingerprintLock = true;
@@ -447,6 +449,7 @@ public class SharedConfig {
                 editor.putBoolean("nailongNoSponsored", nailongNoSponsored);
                 editor.putBoolean("nailongAllowSaveRestricted", nailongAllowSaveRestricted);
                 editor.putBoolean("nailongDisableFlagSecure", nailongDisableFlagSecure);
+                editor.putBoolean("nailongFastDownload", nailongFastDownload);
                 editor.putBoolean("saveIncomingPhotos", saveIncomingPhotos);
                 editor.putString("passcodeHash1", passcodeHash);
                 editor.putString("passcodeSalt", passcodeSalt.length > 0 ? Base64.encodeToString(passcodeSalt, Base64.DEFAULT) : "");
@@ -531,6 +534,7 @@ public class SharedConfig {
             nailongNoSponsored = preferences.getBoolean("nailongNoSponsored", true);
             nailongAllowSaveRestricted = preferences.getBoolean("nailongAllowSaveRestricted", true);
             nailongDisableFlagSecure = preferences.getBoolean("nailongDisableFlagSecure", true);
+            nailongFastDownload = preferences.getBoolean("nailongFastDownload", true);
             saveIncomingPhotos = preferences.getBoolean("saveIncomingPhotos", false);
             passcodeHash = preferences.getString("passcodeHash1", "");
             appLocked = preferences.getBoolean("appLocked", false);
