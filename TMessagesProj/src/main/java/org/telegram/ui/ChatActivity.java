@@ -1248,6 +1248,10 @@ public class ChatActivity extends BaseFragment implements
 
     public final static int OPTION_VIEW_STATISTICS = 115;
     public final static int OPTION_WELCOME_REVERT = 116;
+    // ★奶龙客户端: 消息详情(含转发原消息时间/ID/大小), 用高位值避免与官方OPTION冲突
+    public final static int OPTION_NAILONG_DETAILS = 900;
+    public final static int OPTION_NAILONG_USER_MSGS = 901;
+    public final static int OPTION_NAILONG_SAVE = 902;
 
     private final static int[] allowedNotificationsDuringChatListAnimations = new int[]{
             NotificationCenter.messagesRead,
@@ -31034,6 +31038,25 @@ public class ChatActivity extends BaseFragment implements
                 icons.add(R.drawable.msg_calendar2);
             }
 
+            // ★奶龙客户端: 消息详情 - 单条非广告消息且已有其它菜单项时追加(不强弹菜单, 排在最后)
+            if (single && !options.isEmpty() && message != null && !message.isSponsored() && message.getId() != 0) {
+                items.add("消息详情");
+                options.add(OPTION_NAILONG_DETAILS);
+                icons.add(R.drawable.msg_info);
+                // ★奶龙客户端: 长按收藏(转发到收藏夹), 由开关控制
+                if (SharedConfig.nailongQuickSave) {
+                    items.add("收藏到收藏夹");
+                    options.add(OPTION_NAILONG_SAVE);
+                    icons.add(R.drawable.msg_saved);
+                }
+                // ★奶龙客户端: 群里追加"查看TA的消息"(按发送者搜索)
+                if (currentChat != null && ChatObject.isMegagroup(currentChat) && message.getFromChatId() > 0 && message.getFromChatId() != getUserConfig().getClientUserId()) {
+                    items.add("查看TA的消息");
+                    options.add(OPTION_NAILONG_USER_MSGS);
+                    icons.add(R.drawable.msg_user_search);
+                }
+            }
+
             if (options.isEmpty() && optionsView == null) {
                 return false;
             }
@@ -33353,6 +33376,65 @@ public class ChatActivity extends BaseFragment implements
         }
         boolean preserveDim = false;
         switch (option) {
+            case OPTION_NAILONG_DETAILS: {
+                // ★奶龙客户端: 消息详情(ID/发送时间/编辑时间/转发原时间/发送者/大小)
+                MessageObject mo = selectedObject;
+                closeMenu();
+                StringBuilder sb = new StringBuilder();
+                java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.getDefault());
+                sb.append("消息ID: ").append(mo.getId()).append("\n");
+                if (mo.messageOwner != null) {
+                    sb.append("发送时间: ").append(sdf.format(new java.util.Date(mo.messageOwner.date * 1000L))).append("\n");
+                    if (mo.messageOwner.edit_date != 0) {
+                        sb.append("编辑时间: ").append(sdf.format(new java.util.Date(mo.messageOwner.edit_date * 1000L))).append("\n");
+                    }
+                    if (mo.messageOwner.fwd_from != null) {
+                        sb.append("转发原时间: ").append(sdf.format(new java.util.Date(mo.messageOwner.fwd_from.date * 1000L))).append("\n");
+                        if (!TextUtils.isEmpty(mo.messageOwner.fwd_from.from_name)) {
+                            sb.append("转发自: ").append(mo.messageOwner.fwd_from.from_name).append("\n");
+                        }
+                    }
+                }
+                sb.append("发送者ID: ").append(mo.getFromChatId());
+                long sz = mo.getSize();
+                if (sz > 0) {
+                    sb.append("\n大小: ").append(sz / 1024).append(" KB");
+                }
+                AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity(), themeDelegate);
+                builder.setTitle("消息详情");
+                builder.setMessage(sb.toString());
+                builder.setPositiveButton(LocaleController.getString(R.string.OK), null);
+                showDialog(builder.create());
+                break;
+            }
+            case OPTION_NAILONG_USER_MSGS: {
+                // ★奶龙客户端: 查看群内该用户的消息(按发送者搜索)
+                long fromId = selectedObject.getFromChatId();
+                closeMenu();
+                if (fromId > 0) {
+                    TLRPC.User u = getMessagesController().getUser(fromId);
+                    if (u != null) {
+                        final TLRPC.User fu = u;
+                        openSearchWithText("");
+                        AndroidUtilities.runOnUIThread(() -> searchUserMessages(fu, null), 150);
+                    }
+                }
+                break;
+            }
+            case OPTION_NAILONG_SAVE: {
+                // ★奶龙客户端: 收藏到收藏夹(转发到"收藏的消息"=自己)
+                MessageObject toSave = selectedObject;
+                closeMenu();
+                if (toSave != null) {
+                    ArrayList<MessageObject> arr = new ArrayList<>();
+                    arr.add(toSave);
+                    getSendMessagesHelper().sendMessage(arr, getUserConfig().getClientUserId(), false, false, true, 0, 0);
+                    if (getParentActivity() != null) {
+                        android.widget.Toast.makeText(getParentActivity(), "已收藏到收藏夹", android.widget.Toast.LENGTH_SHORT).show();
+                    }
+                }
+                break;
+            }
             case OPTION_RETRY: {
                 final MessageObject object = selectedObject;
                 final MessageObject.GroupedMessages group = selectedObjectGroup;

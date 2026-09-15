@@ -141,6 +141,7 @@ public class NaiLongSettingsActivity extends BaseFragment {
             items.add(new Item(VIEW_TYPE_CHECK, ID_NO_PULL_NEXT, "禁止下滑跳转下一个频道", null));
             items.add(new Item(VIEW_TYPE_CHECK, ID_FORWARD_NO_QUOTE, "无引用转发(隐藏转发来源)", null));
             items.add(new Item(VIEW_TYPE_CHECK, ID_FORCE_TRANSLATE, "强制开启翻译", null));
+            items.add(new Item(VIEW_TYPE_CHECK, ID_QUICK_SAVE, "长按消息显示\"收藏\"按钮", null));
             items.add(new Item(VIEW_TYPE_SELECT, ID_READ_ALL, "一键已读所有对话", null));
         } else if (category == CAT_UNLOCK) {
             items.add(new Item(VIEW_TYPE_HEADER, 0, "功能增强", null));
@@ -197,6 +198,7 @@ public class NaiLongSettingsActivity extends BaseFragment {
             case ID_FORWARD_NO_QUOTE: return SharedConfig.nailongForwardNoQuote;
             case ID_MEDIA_BEST: return SharedConfig.nailongMediaBestQuality;
             case ID_FORCE_TRANSLATE: return SharedConfig.nailongForceTranslate;
+            case ID_QUICK_SAVE: return SharedConfig.nailongQuickSave;
         }
         return false;
     }
@@ -219,6 +221,7 @@ public class NaiLongSettingsActivity extends BaseFragment {
             case ID_FORWARD_NO_QUOTE: SharedConfig.nailongForwardNoQuote = !SharedConfig.nailongForwardNoQuote; break;
             case ID_MEDIA_BEST: SharedConfig.nailongMediaBestQuality = !SharedConfig.nailongMediaBestQuality; break;
             case ID_FORCE_TRANSLATE: SharedConfig.nailongForceTranslate = !SharedConfig.nailongForceTranslate; break;
+            case ID_QUICK_SAVE: SharedConfig.nailongQuickSave = !SharedConfig.nailongQuickSave; break;
         }
         SharedConfig.saveConfig();
     }
