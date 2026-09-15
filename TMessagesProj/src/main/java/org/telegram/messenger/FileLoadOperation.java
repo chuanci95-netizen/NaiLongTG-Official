@@ -295,12 +295,19 @@ public class FileLoadOperation {
             maxDownloadRequests = 4;
             maxDownloadRequestsBig = 4;
         }
-        // ★奶龙客户端: 下载加速 - 拉高并发分片请求数+大分片(更多并行=更快下载)
-        if (SharedConfig.nailongFastDownload && !forceSmallChunk) {
+        // ★奶龙客户端: 下载加速档位 - 按选择的倍速拉高并发分片(并发越多越快)
+        if (SharedConfig.nailongDownloadSpeed > 0 && !forceSmallChunk) {
+            int req;
+            switch (SharedConfig.nailongDownloadSpeed) {
+                case 1: req = 8; break;   // 4倍
+                case 2: req = 16; break;  // 12倍
+                case 3: req = 32; break;  // 24倍
+                default: req = 64; break; // 极限
+            }
             downloadChunkSizeBig = 1024 * 512;
-            maxDownloadRequests = 16;
-            maxDownloadRequestsBig = 16;
-            maxDownloadRequestsAnimation = 16;
+            maxDownloadRequests = req;
+            maxDownloadRequestsBig = req;
+            maxDownloadRequestsAnimation = req;
         }
         maxCdnParts = (int) (FileLoader.DEFAULT_MAX_FILE_SIZE / downloadChunkSizeBig);
     }

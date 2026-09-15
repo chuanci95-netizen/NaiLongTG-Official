@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.ui.ActionBar.ActionBar;
+import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Cells.HeaderCell;
@@ -33,6 +34,10 @@ public class NaiLongSettingsActivity extends BaseFragment {
     private static final int VIEW_TYPE_CHECK = 1;
     private static final int VIEW_TYPE_SHADOW = 2;
     private static final int VIEW_TYPE_FOLDER = 3;
+    private static final int VIEW_TYPE_SELECT = 4;
+
+    // 下载加速档位名(index=SharedConfig.nailongDownloadSpeed)
+    private static final String[] DL_NAMES = {"关闭", "4倍加速", "12倍加速", "24倍加速", "极限加速"};
 
     // 分类(文件夹)
     private static final int CAT_ROOT = 0;
@@ -47,7 +52,7 @@ public class NaiLongSettingsActivity extends BaseFragment {
     private static final int ID_DISABLE_SECURE = 3;
     private static final int ID_ALLOW_SAVE = 4;
     private static final int ID_NO_SPONSORED = 5;
-    private static final int ID_FAST_DOWNLOAD = 6;
+    private static final int ID_DOWNLOAD_SPEED = 6;
 
     private final int category;
 
@@ -108,9 +113,11 @@ public class NaiLongSettingsActivity extends BaseFragment {
             items.add(new Item(VIEW_TYPE_CHECK, ID_NO_SPONSORED, "去除频道广告", null));
             items.add(new Item(VIEW_TYPE_SHADOW, 0, "隐藏频道里的官方推广(广告)消息。", null));
         } else if (category == CAT_DOWNLOAD) {
+            int lv = SharedConfig.nailongDownloadSpeed;
+            if (lv < 0 || lv >= DL_NAMES.length) lv = 0;
             items.add(new Item(VIEW_TYPE_HEADER, 0, "下载与媒体", null));
-            items.add(new Item(VIEW_TYPE_CHECK, ID_FAST_DOWNLOAD, "下载加速", null));
-            items.add(new Item(VIEW_TYPE_SHADOW, 0, "拉高并发分片请求数, 大幅提升文件/视频下载速度(网络越好越明显)。", null));
+            items.add(new Item(VIEW_TYPE_SELECT, ID_DOWNLOAD_SPEED, "下载加速", DL_NAMES[lv]));
+            items.add(new Item(VIEW_TYPE_SHADOW, 0, "选择下载倍速档位: 4倍(并发8)/12倍(16)/24倍(32)/极限(64)。并发越多下载越快(网络越好越明显; 极限档可能触发限流)。", null));
         }
     }
 
@@ -121,7 +128,6 @@ public class NaiLongSettingsActivity extends BaseFragment {
             case ID_DISABLE_SECURE: return SharedConfig.nailongDisableFlagSecure;
             case ID_ALLOW_SAVE: return SharedConfig.nailongAllowSaveRestricted;
             case ID_NO_SPONSORED: return SharedConfig.nailongNoSponsored;
-            case ID_FAST_DOWNLOAD: return SharedConfig.nailongFastDownload;
         }
         return false;
     }
@@ -133,7 +139,6 @@ public class NaiLongSettingsActivity extends BaseFragment {
             case ID_DISABLE_SECURE: SharedConfig.nailongDisableFlagSecure = !SharedConfig.nailongDisableFlagSecure; break;
             case ID_ALLOW_SAVE: SharedConfig.nailongAllowSaveRestricted = !SharedConfig.nailongAllowSaveRestricted; break;
             case ID_NO_SPONSORED: SharedConfig.nailongNoSponsored = !SharedConfig.nailongNoSponsored; break;
-            case ID_FAST_DOWNLOAD: SharedConfig.nailongFastDownload = !SharedConfig.nailongFastDownload; break;
         }
         SharedConfig.saveConfig();
     }
@@ -175,10 +180,32 @@ public class NaiLongSettingsActivity extends BaseFragment {
                 if (view instanceof TextCheckCell) {
                     ((TextCheckCell) view).setChecked(getValue(item.id));
                 }
+            } else if (item.viewType == VIEW_TYPE_SELECT) {
+                if (item.id == ID_DOWNLOAD_SPEED) {
+                    showDownloadSpeedDialog();
+                }
             }
         });
 
         return fragmentView;
+    }
+
+    private void showDownloadSpeedDialog() {
+        if (getParentActivity() == null) {
+            return;
+        }
+        AlertDialog.Builder b = new AlertDialog.Builder(getParentActivity());
+        b.setTitle("下载加速档位");
+        b.setItems(DL_NAMES, (dialog, which) -> {
+            SharedConfig.nailongDownloadSpeed = which;
+            SharedConfig.saveConfig();
+            buildItems();
+            if (listView != null && listView.getAdapter() != null) {
+                listView.getAdapter().notifyDataSetChanged();
+            }
+        });
+        b.setNegativeButton("取消", null);
+        showDialog(b.create());
     }
 
     private class ListAdapter extends RecyclerListView.SelectionAdapter {
@@ -186,7 +213,7 @@ public class NaiLongSettingsActivity extends BaseFragment {
         @Override
         public boolean isEnabled(RecyclerView.ViewHolder holder) {
             int t = holder.getItemViewType();
-            return t == VIEW_TYPE_CHECK || t == VIEW_TYPE_FOLDER;
+            return t == VIEW_TYPE_CHECK || t == VIEW_TYPE_FOLDER || t == VIEW_TYPE_SELECT;
         }
 
         @NonNull
@@ -199,7 +226,7 @@ public class NaiLongSettingsActivity extends BaseFragment {
             } else if (viewType == VIEW_TYPE_CHECK) {
                 view = new TextCheckCell(getContext());
                 view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
-            } else if (viewType == VIEW_TYPE_FOLDER) {
+            } else if (viewType == VIEW_TYPE_FOLDER || viewType == VIEW_TYPE_SELECT) {
                 view = new TextSettingsCell(getContext());
                 view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
             } else {
@@ -223,6 +250,7 @@ public class NaiLongSettingsActivity extends BaseFragment {
                     ((TextCheckCell) holder.itemView).setTextAndCheck(item.text, getValue(item.id), divider);
                     break;
                 case VIEW_TYPE_FOLDER:
+                case VIEW_TYPE_SELECT:
                     ((TextSettingsCell) holder.itemView).setTextAndValue(item.text, item.value, divider);
                     break;
                 case VIEW_TYPE_SHADOW:
