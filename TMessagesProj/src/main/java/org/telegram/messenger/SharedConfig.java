@@ -246,6 +246,8 @@ public class SharedConfig {
     public static boolean nailongHideTyping = false;
     public static boolean nailongHideOnline = false;
     public static boolean nailongSecondsTimestamp = false;
+    // ★奶龙客户端: 突破上限(分组/频道群组/置顶/收藏/GIF/公开链接), 默认开
+    public static boolean nailongUnlockLimits = true;
     public static int lastPauseTime;
     public static boolean isWaitingForPasscodeEnter;
     public static boolean useFingerprintLock = true;
@@ -457,6 +459,7 @@ public class SharedConfig {
                 editor.putBoolean("nailongHideTyping", nailongHideTyping);
                 editor.putBoolean("nailongHideOnline", nailongHideOnline);
                 editor.putBoolean("nailongSecondsTimestamp", nailongSecondsTimestamp);
+                editor.putBoolean("nailongUnlockLimits", nailongUnlockLimits);
                 editor.putBoolean("saveIncomingPhotos", saveIncomingPhotos);
                 editor.putString("passcodeHash1", passcodeHash);
                 editor.putString("passcodeSalt", passcodeSalt.length > 0 ? Base64.encodeToString(passcodeSalt, Base64.DEFAULT) : "");
@@ -545,6 +548,7 @@ public class SharedConfig {
             nailongHideTyping = preferences.getBoolean("nailongHideTyping", false);
             nailongHideOnline = preferences.getBoolean("nailongHideOnline", false);
             nailongSecondsTimestamp = preferences.getBoolean("nailongSecondsTimestamp", false);
+            nailongUnlockLimits = preferences.getBoolean("nailongUnlockLimits", true);
             saveIncomingPhotos = preferences.getBoolean("saveIncomingPhotos", false);
             passcodeHash = preferences.getString("passcodeHash1", "");
             appLocked = preferences.getBoolean("appLocked", false);

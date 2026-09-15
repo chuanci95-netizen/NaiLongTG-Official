@@ -45,6 +45,7 @@ public class NaiLongSettingsActivity extends BaseFragment {
     private static final int CAT_PRIVACY = 2;
     private static final int CAT_CLEAN = 3;
     private static final int CAT_DOWNLOAD = 4;
+    private static final int CAT_UNLOCK = 5;
 
     // 开关id
     private static final int ID_SHOW_DELETED = 1;
@@ -56,6 +57,7 @@ public class NaiLongSettingsActivity extends BaseFragment {
     private static final int ID_HIDE_TYPING = 7;
     private static final int ID_HIDE_ONLINE = 8;
     private static final int ID_SECONDS_TS = 9;
+    private static final int ID_UNLOCK_LIMITS = 10;
 
     private final int category;
 
@@ -73,6 +75,7 @@ public class NaiLongSettingsActivity extends BaseFragment {
             case CAT_PRIVACY: return "隐私与安全";
             case CAT_CLEAN: return "净化";
             case CAT_DOWNLOAD: return "下载与媒体";
+            case CAT_UNLOCK: return "解锁增强";
             default: return "高级设置";
         }
     }
@@ -99,8 +102,9 @@ public class NaiLongSettingsActivity extends BaseFragment {
             items.add(new Item(VIEW_TYPE_FOLDER, CAT_MESSAGE, "消息类", "防撤回 / 无视编辑 / 精确到秒"));
             items.add(new Item(VIEW_TYPE_FOLDER, CAT_DOWNLOAD, "下载与媒体", "下载加速档位"));
             items.add(new Item(VIEW_TYPE_FOLDER, CAT_PRIVACY, "隐私与安全", "去截图 / 转发保存 / 隐藏在线输入"));
+            items.add(new Item(VIEW_TYPE_FOLDER, CAT_UNLOCK, "解锁增强", "分组/频道群组/置顶等无上限"));
             items.add(new Item(VIEW_TYPE_FOLDER, CAT_CLEAN, "净化", "去除频道广告"));
-            items.add(new Item(VIEW_TYPE_SHADOW, 0, "更多功能(界面美化/频道群组/翻译等)陆续加入各分类。", null));
+            items.add(new Item(VIEW_TYPE_SHADOW, 0, "更多功能(界面美化/翻译等)陆续加入各分类。", null));
         } else if (category == CAT_MESSAGE) {
             items.add(new Item(VIEW_TYPE_HEADER, 0, "消息类", null));
             items.add(new Item(VIEW_TYPE_CHECK, ID_SHOW_DELETED, "防撤回(保留被撤回的消息)", null));
@@ -118,6 +122,10 @@ public class NaiLongSettingsActivity extends BaseFragment {
             items.add(new Item(VIEW_TYPE_HEADER, 0, "净化", null));
             items.add(new Item(VIEW_TYPE_CHECK, ID_NO_SPONSORED, "去除频道广告", null));
             items.add(new Item(VIEW_TYPE_SHADOW, 0, "隐藏频道里的官方推广(广告)消息。", null));
+        } else if (category == CAT_UNLOCK) {
+            items.add(new Item(VIEW_TYPE_HEADER, 0, "解锁增强", null));
+            items.add(new Item(VIEW_TYPE_CHECK, ID_UNLOCK_LIMITS, "突破各种上限", null));
+            items.add(new Item(VIEW_TYPE_SHADOW, 0, "非会员也放开: 聊天分组数、加入频道/群组数、置顶对话数、收藏贴纸、保存GIF、公开链接数量上限(切换后重启生效)。", null));
         } else if (category == CAT_DOWNLOAD) {
             int lv = SharedConfig.nailongDownloadSpeed;
             if (lv < 0 || lv >= DL_NAMES.length) lv = 0;
@@ -137,6 +145,7 @@ public class NaiLongSettingsActivity extends BaseFragment {
             case ID_HIDE_TYPING: return SharedConfig.nailongHideTyping;
             case ID_HIDE_ONLINE: return SharedConfig.nailongHideOnline;
             case ID_SECONDS_TS: return SharedConfig.nailongSecondsTimestamp;
+            case ID_UNLOCK_LIMITS: return SharedConfig.nailongUnlockLimits;
         }
         return false;
     }
@@ -151,6 +160,7 @@ public class NaiLongSettingsActivity extends BaseFragment {
             case ID_HIDE_TYPING: SharedConfig.nailongHideTyping = !SharedConfig.nailongHideTyping; break;
             case ID_HIDE_ONLINE: SharedConfig.nailongHideOnline = !SharedConfig.nailongHideOnline; break;
             case ID_SECONDS_TS: SharedConfig.nailongSecondsTimestamp = !SharedConfig.nailongSecondsTimestamp; break;
+            case ID_UNLOCK_LIMITS: SharedConfig.nailongUnlockLimits = !SharedConfig.nailongUnlockLimits; break;
         }
         SharedConfig.saveConfig();
     }

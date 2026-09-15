@@ -1655,6 +1655,17 @@ public class MessagesController extends BaseController implements NotificationCe
         dialogFiltersPinnedLimitPremium = mainPreferences.getInt("dialogFiltersPinnedLimitPremium", 10);
         publicLinksLimitDefault = mainPreferences.getInt("publicLinksLimitDefault", 10);
         publicLinksLimitPremium = mainPreferences.getInt("publicLinksLimitPremium", 20);
+        // ★奶龙客户端: 突破各种上限(非会员也放开: 分组/频道群组/置顶/收藏贴纸/GIF/公开链接)
+        if (SharedConfig.nailongUnlockLimits) {
+            channelsLimitDefault = Math.max(channelsLimitDefault, 3000);
+            dialogFiltersLimitDefault = Math.max(dialogFiltersLimitDefault, 999);
+            dialogFiltersChatsLimitDefault = Math.max(dialogFiltersChatsLimitDefault, 999);
+            dialogFiltersPinnedLimitDefault = Math.max(dialogFiltersPinnedLimitDefault, 999);
+            maxPinnedDialogsCountDefault = Math.max(maxPinnedDialogsCountDefault, 999);
+            savedGifsLimitDefault = Math.max(savedGifsLimitDefault, 999);
+            stickersFavedLimitDefault = Math.max(stickersFavedLimitDefault, 999);
+            publicLinksLimitDefault = Math.max(publicLinksLimitDefault, 999);
+        }
         captionLengthLimitDefault = mainPreferences.getInt("captionLengthLimitDefault", 1024);
         captionLengthLimitPremium = mainPreferences.getInt("captionLengthLimitPremium", 4096);
         storyCaptionLengthLimitDefault = mainPreferences.getInt("storyCaptionLengthLimit", 200);
@@ -3445,6 +3456,7 @@ public class MessagesController extends BaseController implements NotificationCe
                         TLRPC.TL_jsonNumber number = (TLRPC.TL_jsonNumber) value.value;
                         if (number.value != channelsLimitDefault) {
                             channelsLimitDefault = (int) number.value;
+                            if (SharedConfig.nailongUnlockLimits) channelsLimitDefault = Math.max(channelsLimitDefault, 3000); // ★奶龙客户端: 频道群组无上限(防服务器重置)
                             editor.putInt("channelsLimitDefault", channelsLimitDefault);
                             changed = true;
                         }
@@ -3533,6 +3545,7 @@ public class MessagesController extends BaseController implements NotificationCe
                         TLRPC.TL_jsonNumber number = (TLRPC.TL_jsonNumber) value.value;
                         if (number.value != dialogFiltersLimitDefault) {
                             dialogFiltersLimitDefault = (int) number.value;
+                            if (SharedConfig.nailongUnlockLimits) dialogFiltersLimitDefault = Math.max(dialogFiltersLimitDefault, 999); // ★奶龙客户端: 分组无上限(防服务器重置)
                             editor.putInt("dialogFiltersLimitDefault", dialogFiltersLimitDefault);
                             changed = true;
                         }
