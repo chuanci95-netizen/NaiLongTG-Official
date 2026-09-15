@@ -20991,6 +20991,7 @@ public class ChatActivity extends BaseFragment implements
         }
         for (int a = 0; a < messArr.size(); a++) {
             MessageObject obj = messArr.get(a);
+            applyNailongEdits(obj); // ★奶龙客户端: 无视编辑 - 加载时贴回持久化的编辑历史(退出重进/重启后仍显示)
             if (obj.replyMessageObject != null) {
                 repliesMessagesDict.put(obj.replyMessageObject.getId(), obj.replyMessageObject);
                 addReplyMessageOwner(obj, 0);
@@ -26632,6 +26633,30 @@ public class ChatActivity extends BaseFragment implements
         replaceMessageObjects(messageObjects, loadIndex, remove, false);
     }
 
+    // ★奶龙客户端: 无视编辑 - 从持久化历史给已编辑消息贴上"编辑历史"(实时编辑+退出重进+重启都能看到)
+    private void applyNailongEdits(MessageObject mo) {
+        if (!SharedConfig.nailongShowEdited || mo == null || mo.nailongEditApplied
+                || mo.type != MessageObject.TYPE_TEXT || mo.messageText == null || !mo.isEdited()) {
+            return;
+        }
+        java.util.ArrayList<String> hist = SharedConfig.nailongGetEdits(dialog_id, mo.getId());
+        if (hist.isEmpty()) {
+            return;
+        }
+        if (mo.nailongBaseText == null) {
+            mo.nailongBaseText = mo.messageText;
+        }
+        CharSequence disp = TextUtils.concat(mo.nailongBaseText, "\n\n✏️ 编辑历史(" + hist.size() + "条):");
+        int n = 1;
+        for (int i = hist.size() - 1; i >= 0; i--) {
+            disp = TextUtils.concat(disp, "\n" + n + ". ", hist.get(i));
+            n++;
+        }
+        mo.messageText = disp;
+        mo.nailongEditApplied = true;
+        mo.generateLayout(null);
+    }
+
     private void replaceMessageObjects(ArrayList<MessageObject> messageObjects, int loadIndex, boolean remove, boolean ignoreDateCheckBeforeRemove) {
         LongSparseArray<MessageObject.GroupedMessages> newGroups = null;
         for (int a = 0; a < messageObjects.size(); a++) {
@@ -26678,22 +26703,12 @@ public class ChatActivity extends BaseFragment implements
             if (SharedConfig.nailongShowEdited && messageObject.isEdited()
                     && messageObject.type == MessageObject.TYPE_TEXT
                     && messageObject.messageText != null) {
+                // ★奶龙客户端: 无视编辑 - 把这次编辑前的正文持久化存起来(重开也在), 再贴回显示
                 CharSequence oldClean = old.nailongBaseText != null ? old.nailongBaseText : old.messageText;
-                CharSequence newClean = messageObject.messageText;
-                if (oldClean != null && !oldClean.toString().equals(newClean.toString())) {
-                    java.util.ArrayList<CharSequence> hist = old.nailongEditHistory != null ? new java.util.ArrayList<>(old.nailongEditHistory) : new java.util.ArrayList<>();
-                    hist.add(oldClean);
-                    messageObject.nailongEditHistory = hist;
-                    messageObject.nailongBaseText = newClean;
-                    CharSequence disp = TextUtils.concat(newClean, "\n\n✏️ 编辑历史(" + hist.size() + "条):");
-                    int n = 1;
-                    for (int i = hist.size() - 1; i >= 0; i--) {
-                        disp = TextUtils.concat(disp, "\n" + n + ". ", hist.get(i));
-                        n++;
-                    }
-                    messageObject.messageText = disp;
-                    messageObject.generateLayout(null);
+                if (oldClean != null && !oldClean.toString().equals(messageObject.messageText.toString())) {
+                    SharedConfig.nailongAddEdit(dialog_id, messageObject.getId(), oldClean);
                 }
+                applyNailongEdits(messageObject);
             }
             if (old.richCheckboxEcho && messageObject.type == MessageObject.TYPE_ARTICLE && old.richLayout != null && messageObject.messageOwner != null) {
                 messageObject.richLayout = old.richLayout;

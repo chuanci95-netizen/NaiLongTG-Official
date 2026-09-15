@@ -68,6 +68,8 @@ public class NaiLongSettingsActivity extends BaseFragment {
     private static final int ID_CUSTOM_PHONE = 12;
     private static final int ID_NO_PULL_NEXT = 13;
     private static final int ID_READ_ALL = 14;
+    private static final int ID_FAKE_PREMIUM = 15;
+    private static final int ID_TABLET_MODE = 16;
 
     private final int category;
 
@@ -125,6 +127,8 @@ public class NaiLongSettingsActivity extends BaseFragment {
             items.add(new Item(VIEW_TYPE_HEADER, 0, "功能增强", null));
             items.add(new Item(VIEW_TYPE_CHECK, ID_UNLOCK_LIMITS, "突破各种上限", null));
             items.add(new Item(VIEW_TYPE_CHECK, ID_NO_SPONSORED, "去除频道广告", null));
+            items.add(new Item(VIEW_TYPE_CHECK, ID_FAKE_PREMIUM, "本地会员(解锁会员功能)", null));
+            items.add(new Item(VIEW_TYPE_CHECK, ID_TABLET_MODE, "平板比例(重启生效)", null));
         } else if (category == CAT_DOWNLOAD) {
             int lv = SharedConfig.nailongDownloadSpeed;
             if (lv < 0 || lv >= DL_NAMES.length) lv = 0;
@@ -157,6 +161,8 @@ public class NaiLongSettingsActivity extends BaseFragment {
             case ID_UNLOCK_LIMITS: return SharedConfig.nailongUnlockLimits;
             case ID_HIDE_READ: return SharedConfig.nailongHideRead;
             case ID_NO_PULL_NEXT: return SharedConfig.nailongNoPullNextChannel;
+            case ID_FAKE_PREMIUM: return SharedConfig.nailongFakePremium;
+            case ID_TABLET_MODE: return SharedConfig.nailongTabletMode;
         }
         return false;
     }
@@ -174,6 +180,8 @@ public class NaiLongSettingsActivity extends BaseFragment {
             case ID_UNLOCK_LIMITS: SharedConfig.nailongUnlockLimits = !SharedConfig.nailongUnlockLimits; break;
             case ID_HIDE_READ: SharedConfig.nailongHideRead = !SharedConfig.nailongHideRead; break;
             case ID_NO_PULL_NEXT: SharedConfig.nailongNoPullNextChannel = !SharedConfig.nailongNoPullNextChannel; break;
+            case ID_FAKE_PREMIUM: SharedConfig.nailongFakePremium = !SharedConfig.nailongFakePremium; break;
+            case ID_TABLET_MODE: SharedConfig.nailongTabletMode = !SharedConfig.nailongTabletMode; break;
         }
         SharedConfig.saveConfig();
     }

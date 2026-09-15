@@ -227,9 +227,10 @@ public class MessageObject {
     // ★奶龙客户端: 防撤回标记(被别人撤回但仍显示, 右下角标"已删除") + 无视编辑历史
     public boolean nailongDeleted;
     public CharSequence nailongOriginalText;
-    // ★奶龙客户端: 无视编辑 - 保留全部编辑历史. nailongBaseText=当前干净正文(不含追加的历史), nailongEditHistory=历次编辑前的正文(旧→新)
+    // ★奶龙客户端: 无视编辑 - 保留全部编辑历史. nailongBaseText=当前干净正文(不含追加的历史), nailongEditApplied=已贴过历史防重复
     public CharSequence nailongBaseText;
     public java.util.ArrayList<CharSequence> nailongEditHistory;
+    public boolean nailongEditApplied;
     public float audioProgress;
     public float forceSeekTo = -1;
     public int audioProgressMs;

@@ -576,6 +576,10 @@ public class UserConfig extends BaseController {
         if (user == null) {
             return false;
         }
+        // ★奶龙客户端: 本地会员(伪premium) - 解锁翻译/更多反应/会员表情等premium界面功能(会员操作服务器仍会拒)
+        if (SharedConfig.nailongFakePremium) {
+            return true;
+        }
         return user.premium;
     }
 

@@ -253,6 +253,10 @@ public class SharedConfig {
     // ★奶龙客户端: 自定义手机号显示(仅界面显示, 空=显示真实号); 禁止下滑跳转下一个频道
     public static String nailongCustomPhone = "";
     public static boolean nailongNoPullNextChannel = false;
+    // ★奶龙客户端: 本地会员(伪premium) - isPremium返true, 解锁翻译/更多反应/会员表情等premium界面功能, 默认关(会员操作服务器会拒, 自我安慰用)
+    public static boolean nailongFakePremium = false;
+    // ★奶龙客户端: 平板比例 - 强制平板双栏布局(手机也用平板UI), 默认关
+    public static boolean nailongTabletMode = false;
     public static int lastPauseTime;
     public static boolean isWaitingForPasscodeEnter;
     public static boolean useFingerprintLock = true;
@@ -450,6 +454,37 @@ public class SharedConfig {
     private static boolean proxyListLoaded;
     public static ProxyInfo currentProxy;
 
+    // ★奶龙客户端: 无视编辑历史持久化(重开聊天/重启后仍能看到历次编辑前原文). key=dialogId_msgId, value=各版本用\u0001分隔(旧→新)
+    public static void nailongAddEdit(long dialogId, int msgId, CharSequence original) {
+        if (original == null) return;
+        try {
+            SharedPreferences p = ApplicationLoader.applicationContext.getSharedPreferences("nailong_edits", Context.MODE_PRIVATE);
+            String key = dialogId + "_" + msgId;
+            String add = original.toString();
+            String cur = p.getString(key, "");
+            if (!cur.isEmpty()) {
+                String[] parts = cur.split("\u0001", -1);
+                if (parts.length > 0 && parts[parts.length - 1].equals(add)) return; // 与最近一条相同不重复
+                cur = cur + "\u0001" + add;
+            } else {
+                cur = add;
+            }
+            p.edit().putString(key, cur).apply();
+        } catch (Exception ignore) {}
+    }
+
+    public static java.util.ArrayList<String> nailongGetEdits(long dialogId, int msgId) {
+        java.util.ArrayList<String> list = new java.util.ArrayList<>();
+        try {
+            SharedPreferences p = ApplicationLoader.applicationContext.getSharedPreferences("nailong_edits", Context.MODE_PRIVATE);
+            String cur = p.getString(dialogId + "_" + msgId, "");
+            if (!cur.isEmpty()) {
+                for (String s : cur.split("\u0001", -1)) list.add(s);
+            }
+        } catch (Exception ignore) {}
+        return list;
+    }
+
     public static void saveConfig() {
         synchronized (sync) {
             try {
@@ -468,6 +503,8 @@ public class SharedConfig {
                 editor.putBoolean("nailongHideRead", nailongHideRead);
                 editor.putString("nailongCustomPhone", nailongCustomPhone == null ? "" : nailongCustomPhone);
                 editor.putBoolean("nailongNoPullNextChannel", nailongNoPullNextChannel);
+                editor.putBoolean("nailongFakePremium", nailongFakePremium);
+                editor.putBoolean("nailongTabletMode", nailongTabletMode);
                 editor.putBoolean("saveIncomingPhotos", saveIncomingPhotos);
                 editor.putString("passcodeHash1", passcodeHash);
                 editor.putString("passcodeSalt", passcodeSalt.length > 0 ? Base64.encodeToString(passcodeSalt, Base64.DEFAULT) : "");
@@ -560,6 +597,8 @@ public class SharedConfig {
             nailongHideRead = preferences.getBoolean("nailongHideRead", false);
             nailongCustomPhone = preferences.getString("nailongCustomPhone", "");
             nailongNoPullNextChannel = preferences.getBoolean("nailongNoPullNextChannel", false);
+            nailongFakePremium = preferences.getBoolean("nailongFakePremium", false);
+            nailongTabletMode = preferences.getBoolean("nailongTabletMode", false);
             saveIncomingPhotos = preferences.getBoolean("saveIncomingPhotos", false);
             passcodeHash = preferences.getString("passcodeHash1", "");
             appLocked = preferences.getBoolean("appLocked", false);

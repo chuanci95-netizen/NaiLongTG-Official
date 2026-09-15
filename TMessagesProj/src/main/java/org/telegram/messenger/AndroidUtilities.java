@@ -2950,6 +2950,9 @@ public class AndroidUtilities {
     }
 
     public static boolean isTabletInternal() {
+        if (SharedConfig.nailongTabletMode) {
+            return true; // ★奶龙客户端: 平板比例 - 强制平板双栏布局
+        }
         if (isTablet == null) {
             isTablet = isTabletForce();
         }
