@@ -17604,6 +17604,14 @@ public class MessagesController extends BaseController implements NotificationCe
     }
 
     protected void deleteMessagesByPush(long dialogId, ArrayList<Integer> ids, long channelId) {
+        if (SharedConfig.nailongShowDeleted) {
+            // ★奶龙客户端: 真·防撤回 - 别人撤回(delete for everyone)推送到达时, 不删数据库也不删内存,
+            // 只发messagesDeleted通知让当前聊天界面把这些消息标记为"已删除"并保留(重开也还在, 因为数据库没删)
+            AndroidUtilities.runOnUIThread(() -> {
+                getNotificationCenter().postNotificationName(NotificationCenter.messagesDeleted, ids, channelId, false);
+            });
+            return;
+        }
         getMessagesStorage().getStorageQueue().postRunnable(() -> {
             AndroidUtilities.runOnUIThread(() -> {
                 getNotificationCenter().postNotificationName(NotificationCenter.messagesDeleted, ids, channelId, false);

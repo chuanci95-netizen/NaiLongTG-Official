@@ -26670,14 +26670,24 @@ public class ChatActivity extends BaseFragment implements
             }
 
             addToPolls(messageObject, old);
-            // ★奶龙客户端: 无视编辑 - 编辑后的消息末尾追加"编辑前"原文, 编辑前+编辑后都能看到
+            // ★奶龙客户端: 无视编辑 - 保留全部编辑历史(每次编辑前的正文都留着, 新→旧列在下方, 永远能看到)
             if (SharedConfig.nailongShowEdited && messageObject.isEdited()
                     && messageObject.type == MessageObject.TYPE_TEXT
                     && messageObject.messageText != null) {
-                CharSequence nlOrig = old.nailongOriginalText != null ? old.nailongOriginalText : old.messageText;
-                if (nlOrig != null && !nlOrig.toString().equals(messageObject.messageText.toString())) {
-                    messageObject.nailongOriginalText = nlOrig;
-                    messageObject.messageText = TextUtils.concat(messageObject.messageText, "\n\n✏️ 编辑前:\n", nlOrig);
+                CharSequence oldClean = old.nailongBaseText != null ? old.nailongBaseText : old.messageText;
+                CharSequence newClean = messageObject.messageText;
+                if (oldClean != null && !oldClean.toString().equals(newClean.toString())) {
+                    java.util.ArrayList<CharSequence> hist = old.nailongEditHistory != null ? new java.util.ArrayList<>(old.nailongEditHistory) : new java.util.ArrayList<>();
+                    hist.add(oldClean);
+                    messageObject.nailongEditHistory = hist;
+                    messageObject.nailongBaseText = newClean;
+                    CharSequence disp = TextUtils.concat(newClean, "\n\n✏️ 编辑历史(" + hist.size() + "条):");
+                    int n = 1;
+                    for (int i = hist.size() - 1; i >= 0; i--) {
+                        disp = TextUtils.concat(disp, "\n" + n + ". ", hist.get(i));
+                        n++;
+                    }
+                    messageObject.messageText = disp;
                     messageObject.generateLayout(null);
                 }
             }
