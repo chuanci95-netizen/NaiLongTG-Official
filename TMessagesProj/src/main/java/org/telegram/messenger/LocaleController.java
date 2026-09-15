@@ -1457,6 +1457,10 @@ public class LocaleController {
         if (value == null) {
             value = "LOC_ERR:" + key;
         }
+        // ★奶龙客户端: 全局把界面字符串里的品牌词"Telegram"改成"奶龙客户端"(覆盖语言包 高级版/星星/企业版/常见问题/功能 等所有"Telegram X")
+        if (value.indexOf("Telegram") >= 0) {
+            value = value.replace("Telegram", "奶龙客户端");
+        }
         return value;
     }
 

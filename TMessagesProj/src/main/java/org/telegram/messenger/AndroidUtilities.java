@@ -6698,29 +6698,14 @@ public class AndroidUtilities {
     }
 
     public static String getBuildVersionInfo() {
+        // ★奶龙客户端: 版本行固定显示"奶龙客户端 v版本号"(去掉Telegram/build号/abi/direct)
         try {
             PackageInfo pInfo = ApplicationLoader.applicationContext.getPackageManager().getPackageInfo(ApplicationLoader.applicationContext.getPackageName(), 0);
-            int code = pInfo.versionCode / 10;
-            String abi = "";
-            switch (pInfo.versionCode % 10) {
-                case 1:
-                case 2:
-                    abi = "store bundled " + Build.CPU_ABI + " " + Build.CPU_ABI2;
-                    break;
-                default:
-                case 9:
-                    if (ApplicationLoader.isStandaloneBuild()) {
-                        abi = "direct " + Build.CPU_ABI + " " + Build.CPU_ABI2;
-                    } else {
-                        abi = "universal " + Build.CPU_ABI + " " + Build.CPU_ABI2;
-                    }
-                    break;
-            }
-            return formatString("TelegramVersion", R.string.TelegramVersion, String.format(Locale.US, "v%s (%d) %s", pInfo.versionName, code, abi));
+            return "奶龙客户端 v" + pInfo.versionName;
         } catch (Exception e) {
             FileLog.e(e);
         }
-        return null;
+        return "奶龙客户端";
     }
 
 
