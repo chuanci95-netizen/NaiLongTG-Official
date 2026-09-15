@@ -58,6 +58,7 @@ public class NaiLongSettingsActivity extends BaseFragment {
     private static final int ID_HIDE_ONLINE = 8;
     private static final int ID_SECONDS_TS = 9;
     private static final int ID_UNLOCK_LIMITS = 10;
+    private static final int ID_HIDE_READ = 11;
 
     private final int category;
 
@@ -117,7 +118,8 @@ public class NaiLongSettingsActivity extends BaseFragment {
             items.add(new Item(VIEW_TYPE_CHECK, ID_ALLOW_SAVE, "破解转发/保存限制", null));
             items.add(new Item(VIEW_TYPE_CHECK, ID_HIDE_TYPING, "隐藏正在输入", null));
             items.add(new Item(VIEW_TYPE_CHECK, ID_HIDE_ONLINE, "隐藏在线状态", null));
-            items.add(new Item(VIEW_TYPE_SHADOW, 0, "去截图/破解转发: 允许对禁止转发的聊天截图、转发并保存。\n隐藏正在输入: 不向对方发送\"正在输入\"。\n隐藏在线状态: 不向服务器上报在线(始终显示离线)。", null));
+            items.add(new Item(VIEW_TYPE_CHECK, ID_HIDE_READ, "隐藏已读回执", null));
+            items.add(new Item(VIEW_TYPE_SHADOW, 0, "去截图/破解转发: 允许对禁止转发的聊天截图、转发并保存。\n隐藏正在输入: 不向对方发送\"正在输入\"。\n隐藏在线状态: 不向服务器上报在线(始终显示离线)。\n隐藏已读回执: 私聊看消息不给对方发\"已读\"(自己本地仍标已读)。", null));
         } else if (category == CAT_CLEAN) {
             items.add(new Item(VIEW_TYPE_HEADER, 0, "净化", null));
             items.add(new Item(VIEW_TYPE_CHECK, ID_NO_SPONSORED, "去除频道广告", null));
@@ -146,6 +148,7 @@ public class NaiLongSettingsActivity extends BaseFragment {
             case ID_HIDE_ONLINE: return SharedConfig.nailongHideOnline;
             case ID_SECONDS_TS: return SharedConfig.nailongSecondsTimestamp;
             case ID_UNLOCK_LIMITS: return SharedConfig.nailongUnlockLimits;
+            case ID_HIDE_READ: return SharedConfig.nailongHideRead;
         }
         return false;
     }
@@ -161,6 +164,7 @@ public class NaiLongSettingsActivity extends BaseFragment {
             case ID_HIDE_ONLINE: SharedConfig.nailongHideOnline = !SharedConfig.nailongHideOnline; break;
             case ID_SECONDS_TS: SharedConfig.nailongSecondsTimestamp = !SharedConfig.nailongSecondsTimestamp; break;
             case ID_UNLOCK_LIMITS: SharedConfig.nailongUnlockLimits = !SharedConfig.nailongUnlockLimits; break;
+            case ID_HIDE_READ: SharedConfig.nailongHideRead = !SharedConfig.nailongHideRead; break;
         }
         SharedConfig.saveConfig();
     }

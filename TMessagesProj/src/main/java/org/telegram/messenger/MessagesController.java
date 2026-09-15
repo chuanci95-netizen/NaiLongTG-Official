@@ -14605,12 +14605,16 @@ public class MessagesController extends BaseController implements NotificationCe
                 request.channel = getInputChannel(-task.dialogId);
                 request.max_id = task.maxId;
                 req = request;
+            } else if (SharedConfig.nailongHideRead) {
+                // ★奶龙客户端: 隐藏已读 - 私聊不发已读回执(对方看不到"已读", 本地已读仍照常清)
+                req = null;
             } else {
                 TLRPC.TL_messages_readHistory request = new TLRPC.TL_messages_readHistory();
                 request.peer = inputPeer;
                 request.max_id = task.maxId;
                 req = request;
             }
+            if (req != null)
             getConnectionsManager().sendRequest(req, (response, error) -> {
                 if (error == null) {
                     if (response instanceof TLRPC.TL_messages_affectedMessages) {
