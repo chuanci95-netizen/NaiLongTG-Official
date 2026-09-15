@@ -109,22 +109,27 @@ public class NaiLongSettingsActivity extends BaseFragment {
     private void buildItems() {
         items.clear();
         if (category == CAT_ROOT) {
-            items.add(new Item(VIEW_TYPE_HEADER, 0, "功能分类", null));
-            items.add(new Item(VIEW_TYPE_FOLDER, CAT_MESSAGE, "消息类", "防撤回 / 无视编辑 / 精确到秒"));
-            items.add(new Item(VIEW_TYPE_FOLDER, CAT_DOWNLOAD, "下载与媒体", "下载加速档位"));
-            items.add(new Item(VIEW_TYPE_FOLDER, CAT_PRIVACY, "隐私与安全", "去截图 / 转发保存 / 隐藏在线输入"));
-            items.add(new Item(VIEW_TYPE_FOLDER, CAT_UNLOCK, "解锁增强", "分组/频道群组/置顶等无上限"));
-            items.add(new Item(VIEW_TYPE_FOLDER, CAT_PROFILE, "个人资料美化", "自定义手机号显示"));
-            items.add(new Item(VIEW_TYPE_FOLDER, CAT_CLEAN, "净化", "去除频道广告"));
-            items.add(new Item(VIEW_TYPE_SHADOW, 0, "更多功能(界面美化/翻译等)陆续加入各分类。", null));
+            items.add(new Item(VIEW_TYPE_FOLDER, CAT_MESSAGE, "消息类", null));
+            items.add(new Item(VIEW_TYPE_FOLDER, CAT_UNLOCK, "功能增强", null));
+            items.add(new Item(VIEW_TYPE_FOLDER, CAT_DOWNLOAD, "下载与媒体", null));
+            items.add(new Item(VIEW_TYPE_FOLDER, CAT_PRIVACY, "隐私与安全", null));
+            items.add(new Item(VIEW_TYPE_FOLDER, CAT_PROFILE, "个人资料美化", null));
         } else if (category == CAT_MESSAGE) {
             items.add(new Item(VIEW_TYPE_HEADER, 0, "消息类", null));
-            items.add(new Item(VIEW_TYPE_CHECK, ID_SHOW_DELETED, "防撤回(保留被撤回的消息)", null));
-            items.add(new Item(VIEW_TYPE_CHECK, ID_SHOW_EDITED, "无视编辑(保留全部编辑历史)", null));
+            items.add(new Item(VIEW_TYPE_CHECK, ID_SHOW_DELETED, "防撤回", null));
+            items.add(new Item(VIEW_TYPE_CHECK, ID_SHOW_EDITED, "无视编辑", null));
             items.add(new Item(VIEW_TYPE_CHECK, ID_SECONDS_TS, "精确到秒时间戳", null));
             items.add(new Item(VIEW_TYPE_CHECK, ID_NO_PULL_NEXT, "禁止下滑跳转下一个频道", null));
-            items.add(new Item(VIEW_TYPE_SELECT, ID_READ_ALL, "一键已读所有对话", "点击执行"));
-            items.add(new Item(VIEW_TYPE_SHADOW, 0, "防撤回: 别人双向删除(delete for everyone)的消息也会保留并标\"已删除\"。\n无视编辑: 每次编辑前的原文都保留, 消息下方列出全部编辑历史。\n精确到秒: 消息时间显示到秒(切换后重进聊天生效)。\n禁止下滑跳转: 频道底部下滑不再跳到下一个频道。", null));
+            items.add(new Item(VIEW_TYPE_SELECT, ID_READ_ALL, "一键已读所有对话", null));
+        } else if (category == CAT_UNLOCK) {
+            items.add(new Item(VIEW_TYPE_HEADER, 0, "功能增强", null));
+            items.add(new Item(VIEW_TYPE_CHECK, ID_UNLOCK_LIMITS, "突破各种上限", null));
+            items.add(new Item(VIEW_TYPE_CHECK, ID_NO_SPONSORED, "去除频道广告", null));
+        } else if (category == CAT_DOWNLOAD) {
+            int lv = SharedConfig.nailongDownloadSpeed;
+            if (lv < 0 || lv >= DL_NAMES.length) lv = 0;
+            items.add(new Item(VIEW_TYPE_HEADER, 0, "下载与媒体", null));
+            items.add(new Item(VIEW_TYPE_SELECT, ID_DOWNLOAD_SPEED, "下载加速", DL_NAMES[lv]));
         } else if (category == CAT_PRIVACY) {
             items.add(new Item(VIEW_TYPE_HEADER, 0, "隐私与安全", null));
             items.add(new Item(VIEW_TYPE_CHECK, ID_DISABLE_SECURE, "去除截图限制", null));
@@ -132,26 +137,10 @@ public class NaiLongSettingsActivity extends BaseFragment {
             items.add(new Item(VIEW_TYPE_CHECK, ID_HIDE_TYPING, "隐藏正在输入", null));
             items.add(new Item(VIEW_TYPE_CHECK, ID_HIDE_ONLINE, "隐藏在线状态", null));
             items.add(new Item(VIEW_TYPE_CHECK, ID_HIDE_READ, "隐藏已读回执", null));
-            items.add(new Item(VIEW_TYPE_SHADOW, 0, "去截图/破解转发: 允许对禁止转发的聊天截图、转发并保存。\n隐藏正在输入: 不向对方发送\"正在输入\"。\n隐藏在线状态: 不向服务器上报在线(始终显示离线)。\n隐藏已读回执: 私聊看消息不给对方发\"已读\"(自己本地仍标已读)。", null));
-        } else if (category == CAT_CLEAN) {
-            items.add(new Item(VIEW_TYPE_HEADER, 0, "净化", null));
-            items.add(new Item(VIEW_TYPE_CHECK, ID_NO_SPONSORED, "去除频道广告", null));
-            items.add(new Item(VIEW_TYPE_SHADOW, 0, "隐藏频道里的官方推广(广告)消息。", null));
-        } else if (category == CAT_UNLOCK) {
-            items.add(new Item(VIEW_TYPE_HEADER, 0, "解锁增强", null));
-            items.add(new Item(VIEW_TYPE_CHECK, ID_UNLOCK_LIMITS, "突破各种上限", null));
-            items.add(new Item(VIEW_TYPE_SHADOW, 0, "非会员也放开: 聊天分组数、加入频道/群组数、置顶对话数、收藏贴纸、保存GIF、公开链接数量上限(切换后重启生效)。", null));
         } else if (category == CAT_PROFILE) {
             String cp = SharedConfig.nailongCustomPhone;
             items.add(new Item(VIEW_TYPE_HEADER, 0, "个人资料美化", null));
             items.add(new Item(VIEW_TYPE_SELECT, ID_CUSTOM_PHONE, "自定义手机号", TextUtils.isEmpty(cp) ? "未设置" : cp));
-            items.add(new Item(VIEW_TYPE_SHADOW, 0, "自定义个人资料/设置页显示的手机号(仅本机界面显示, 不改真实号码)。留空=显示真实号。", null));
-        } else if (category == CAT_DOWNLOAD) {
-            int lv = SharedConfig.nailongDownloadSpeed;
-            if (lv < 0 || lv >= DL_NAMES.length) lv = 0;
-            items.add(new Item(VIEW_TYPE_HEADER, 0, "下载与媒体", null));
-            items.add(new Item(VIEW_TYPE_SELECT, ID_DOWNLOAD_SPEED, "下载加速", DL_NAMES[lv]));
-            items.add(new Item(VIEW_TYPE_SHADOW, 0, "选择下载倍速档位: 4倍(并发8)/12倍(16)/24倍(32)/极限(64)。并发越多下载越快(网络越好越明显; 极限档可能触发限流)。", null));
         }
     }
 

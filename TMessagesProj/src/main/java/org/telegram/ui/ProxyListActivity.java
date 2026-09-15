@@ -232,6 +232,7 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
                 return;
             }
             isSelectionEnabled = enabled;
+            final boolean hideInfo = currentInfo != null && currentInfo.builtIn; // ★奶龙客户端: 内置代理永久隐藏info(i)按钮, 防别人查看/搬运代理
 
             float fromX = 0, toX = LocaleController.isRTL ? -AndroidUtilities.dp(32) : AndroidUtilities.dp(32);
             if (!animated) {
@@ -240,7 +241,7 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
                 valueTextView.setTranslationX(x);
                 checkImageView.setTranslationX(x);
                 checkBox.setTranslationX((LocaleController.isRTL ? AndroidUtilities.dp(32) : -AndroidUtilities.dp(32)) + x);
-                checkImageView.setVisibility(enabled ? GONE : VISIBLE);
+                checkImageView.setVisibility((enabled || hideInfo) ? GONE : VISIBLE);
                 checkImageView.setAlpha(1f);
                 checkImageView.setScaleX(1f);
                 checkImageView.setScaleY(1f);
@@ -277,7 +278,7 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
                             checkBox.setVisibility(VISIBLE);
                         } else {
                             checkImageView.setAlpha(0f);
-                            checkImageView.setVisibility(VISIBLE);
+                            checkImageView.setVisibility(hideInfo ? GONE : VISIBLE);
                         }
                     }
 
@@ -287,6 +288,7 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
                             checkImageView.setVisibility(GONE);
                         } else {
                             checkBox.setVisibility(GONE);
+                            if (hideInfo) checkImageView.setVisibility(GONE); // ★奶龙客户端: 内置代理不显示info按钮
                         }
                     }
                 });
