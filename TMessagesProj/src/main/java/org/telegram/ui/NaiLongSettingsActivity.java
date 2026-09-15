@@ -53,6 +53,9 @@ public class NaiLongSettingsActivity extends BaseFragment {
     private static final int ID_ALLOW_SAVE = 4;
     private static final int ID_NO_SPONSORED = 5;
     private static final int ID_DOWNLOAD_SPEED = 6;
+    private static final int ID_HIDE_TYPING = 7;
+    private static final int ID_HIDE_ONLINE = 8;
+    private static final int ID_SECONDS_TS = 9;
 
     private final int category;
 
@@ -93,21 +96,24 @@ public class NaiLongSettingsActivity extends BaseFragment {
         items.clear();
         if (category == CAT_ROOT) {
             items.add(new Item(VIEW_TYPE_HEADER, 0, "功能分类", null));
-            items.add(new Item(VIEW_TYPE_FOLDER, CAT_MESSAGE, "消息类", "防撤回 / 无视编辑"));
-            items.add(new Item(VIEW_TYPE_FOLDER, CAT_DOWNLOAD, "下载与媒体", "下载加速"));
-            items.add(new Item(VIEW_TYPE_FOLDER, CAT_PRIVACY, "隐私与安全", "去截图 / 破解转发保存"));
+            items.add(new Item(VIEW_TYPE_FOLDER, CAT_MESSAGE, "消息类", "防撤回 / 无视编辑 / 精确到秒"));
+            items.add(new Item(VIEW_TYPE_FOLDER, CAT_DOWNLOAD, "下载与媒体", "下载加速档位"));
+            items.add(new Item(VIEW_TYPE_FOLDER, CAT_PRIVACY, "隐私与安全", "去截图 / 转发保存 / 隐藏在线输入"));
             items.add(new Item(VIEW_TYPE_FOLDER, CAT_CLEAN, "净化", "去除频道广告"));
             items.add(new Item(VIEW_TYPE_SHADOW, 0, "更多功能(界面美化/频道群组/翻译等)陆续加入各分类。", null));
         } else if (category == CAT_MESSAGE) {
             items.add(new Item(VIEW_TYPE_HEADER, 0, "消息类", null));
             items.add(new Item(VIEW_TYPE_CHECK, ID_SHOW_DELETED, "防撤回(保留被撤回的消息)", null));
             items.add(new Item(VIEW_TYPE_CHECK, ID_SHOW_EDITED, "无视编辑(保留全部编辑历史)", null));
-            items.add(new Item(VIEW_TYPE_SHADOW, 0, "防撤回: 别人双向删除(delete for everyone)的消息也会保留并标\"已删除\"。\n无视编辑: 每次编辑前的原文都保留, 消息下方列出全部编辑历史。", null));
+            items.add(new Item(VIEW_TYPE_CHECK, ID_SECONDS_TS, "精确到秒时间戳", null));
+            items.add(new Item(VIEW_TYPE_SHADOW, 0, "防撤回: 别人双向删除(delete for everyone)的消息也会保留并标\"已删除\"。\n无视编辑: 每次编辑前的原文都保留, 消息下方列出全部编辑历史。\n精确到秒: 消息时间显示到秒(切换后重进聊天生效)。", null));
         } else if (category == CAT_PRIVACY) {
             items.add(new Item(VIEW_TYPE_HEADER, 0, "隐私与安全", null));
             items.add(new Item(VIEW_TYPE_CHECK, ID_DISABLE_SECURE, "去除截图限制", null));
             items.add(new Item(VIEW_TYPE_CHECK, ID_ALLOW_SAVE, "破解转发/保存限制", null));
-            items.add(new Item(VIEW_TYPE_SHADOW, 0, "允许对禁止转发/保存的聊天截图、转发并保存其中内容。", null));
+            items.add(new Item(VIEW_TYPE_CHECK, ID_HIDE_TYPING, "隐藏正在输入", null));
+            items.add(new Item(VIEW_TYPE_CHECK, ID_HIDE_ONLINE, "隐藏在线状态", null));
+            items.add(new Item(VIEW_TYPE_SHADOW, 0, "去截图/破解转发: 允许对禁止转发的聊天截图、转发并保存。\n隐藏正在输入: 不向对方发送\"正在输入\"。\n隐藏在线状态: 不向服务器上报在线(始终显示离线)。", null));
         } else if (category == CAT_CLEAN) {
             items.add(new Item(VIEW_TYPE_HEADER, 0, "净化", null));
             items.add(new Item(VIEW_TYPE_CHECK, ID_NO_SPONSORED, "去除频道广告", null));
@@ -128,6 +134,9 @@ public class NaiLongSettingsActivity extends BaseFragment {
             case ID_DISABLE_SECURE: return SharedConfig.nailongDisableFlagSecure;
             case ID_ALLOW_SAVE: return SharedConfig.nailongAllowSaveRestricted;
             case ID_NO_SPONSORED: return SharedConfig.nailongNoSponsored;
+            case ID_HIDE_TYPING: return SharedConfig.nailongHideTyping;
+            case ID_HIDE_ONLINE: return SharedConfig.nailongHideOnline;
+            case ID_SECONDS_TS: return SharedConfig.nailongSecondsTimestamp;
         }
         return false;
     }
@@ -139,6 +148,9 @@ public class NaiLongSettingsActivity extends BaseFragment {
             case ID_DISABLE_SECURE: SharedConfig.nailongDisableFlagSecure = !SharedConfig.nailongDisableFlagSecure; break;
             case ID_ALLOW_SAVE: SharedConfig.nailongAllowSaveRestricted = !SharedConfig.nailongAllowSaveRestricted; break;
             case ID_NO_SPONSORED: SharedConfig.nailongNoSponsored = !SharedConfig.nailongNoSponsored; break;
+            case ID_HIDE_TYPING: SharedConfig.nailongHideTyping = !SharedConfig.nailongHideTyping; break;
+            case ID_HIDE_ONLINE: SharedConfig.nailongHideOnline = !SharedConfig.nailongHideOnline; break;
+            case ID_SECONDS_TS: SharedConfig.nailongSecondsTimestamp = !SharedConfig.nailongSecondsTimestamp; break;
         }
         SharedConfig.saveConfig();
     }
