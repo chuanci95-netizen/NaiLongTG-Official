@@ -14372,6 +14372,9 @@ public class ChatActivity extends BaseFragment implements
         if (arrayList == null || arrayList.isEmpty()) {
             return;
         }
+        if (SharedConfig.nailongForwardNoQuote) {
+            fromMyName = true; // ★奶龙客户端: 无引用转发 - 以自己名义发送, 隐藏"转发自"来源
+        }
         if (!checkSlowModeAlert()) {
             return;
         }

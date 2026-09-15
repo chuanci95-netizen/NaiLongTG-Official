@@ -91,10 +91,12 @@ public class TranslateController extends BaseController {
     }
 
     public boolean isFeatureAvailable() {
+        if (SharedConfig.nailongForceTranslate) return true; // ★奶龙客户端: 强制翻译
         return isChatTranslateEnabled() && UserConfig.getInstance(currentAccount).isPremium();
     }
 
     public boolean isFeatureAvailable(long dialogId) {
+        if (SharedConfig.nailongForceTranslate) return true; // ★奶龙客户端: 强制翻译
         if (!isChatTranslateEnabled()) {
             return false;
         }
@@ -109,6 +111,7 @@ public class TranslateController extends BaseController {
     private Boolean contextTranslateEnabled;
 
     public boolean isChatTranslateEnabled() {
+        if (SharedConfig.nailongForceTranslate) return true; // ★奶龙客户端: 强制翻译
         if (!getMessagesController().isTranslationsAutoEnabled()) {
             return false;
         }
@@ -119,6 +122,7 @@ public class TranslateController extends BaseController {
     }
 
     public boolean isContextTranslateEnabled() {
+        if (SharedConfig.nailongForceTranslate) return true; // ★奶龙客户端: 强制翻译(消息长按翻译按钮)
         if (!getMessagesController().isTranslationsManualEnabled()) {
             return false;
         }

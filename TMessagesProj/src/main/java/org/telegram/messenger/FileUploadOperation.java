@@ -318,6 +318,11 @@ public class FileUploadOperation {
                     uploadChunkSize = chunkSize;
                 }
                 maxRequestsCount = Math.max(1, (slowNetwork ? maxUploadingSlowNetworkKBytes : maxUploadingKBytes) / uploadChunkSize);
+                // ★奶龙客户端: 上传加速 - 提高并发上传请求数(1=4倍/2=12倍/3=24倍/4=极限)
+                if (SharedConfig.nailongUploadSpeed > 0 && !slowNetwork) {
+                    int[] mul = {1, 2, 3, 4, 6};
+                    maxRequestsCount = Math.max(1, maxRequestsCount * mul[Math.min(SharedConfig.nailongUploadSpeed, 4)]);
+                }
 
                 if (isEncrypted) {
                     freeRequestIvs = new ArrayList<>(maxRequestsCount);

@@ -257,6 +257,26 @@ public class SharedConfig {
     public static boolean nailongFakePremium = false;
     // ★奶龙客户端: 平板比例 - 强制平板双栏布局(手机也用平板UI), 默认关
     public static boolean nailongTabletMode = false;
+    // ★奶龙客户端 大批量新增功能开关 ↓↓↓
+    // 上传加速档位 0关/1=4倍(并发8)/2=12倍(16)/3=24倍(32)/4=极限(64), 默认关
+    public static int nailongUploadSpeed = 0;
+    // 无引用转发(转发时默认隐藏"转发自"来源), 默认关
+    public static boolean nailongForwardNoQuote = false;
+    // 发送图片/视频默认最高质量(不压缩/原图), 默认关
+    public static boolean nailongMediaBestQuality = false;
+    // 广告只屏蔽文字(保留媒体广告位), 需配合去广告开启; 默认关(即全屏蔽)
+    public static boolean nailongSponsoredTextOnly = false;
+    // 强制开启翻译菜单(不论是否会员/是否开启翻译), 默认关
+    public static boolean nailongForceTranslate = false;
+    // 被删除的消息半透明显示以区分, 默认关
+    public static boolean nailongDeletedTranslucent = false;
+    // 检测到VPN(其它App的VPN)自动关闭内置代理, 默认关
+    public static boolean nailongVpnAutoProxy = false;
+    // 自定义简介显示(仅本机界面显示自己的简介, 空=真实), 默认空
+    public static String nailongCustomBio = "";
+    // 长按消息直接收藏到"收藏夹", 默认关
+    public static boolean nailongQuickSave = false;
+    // ★奶龙客户端 大批量新增功能开关 ↑↑↑
     public static int lastPauseTime;
     public static boolean isWaitingForPasscodeEnter;
     public static boolean useFingerprintLock = true;
@@ -505,6 +525,15 @@ public class SharedConfig {
                 editor.putBoolean("nailongNoPullNextChannel", nailongNoPullNextChannel);
                 editor.putBoolean("nailongFakePremium", nailongFakePremium);
                 editor.putBoolean("nailongTabletMode", nailongTabletMode);
+                editor.putInt("nailongUploadSpeed", nailongUploadSpeed);
+                editor.putBoolean("nailongForwardNoQuote", nailongForwardNoQuote);
+                editor.putBoolean("nailongMediaBestQuality", nailongMediaBestQuality);
+                editor.putBoolean("nailongSponsoredTextOnly", nailongSponsoredTextOnly);
+                editor.putBoolean("nailongForceTranslate", nailongForceTranslate);
+                editor.putBoolean("nailongDeletedTranslucent", nailongDeletedTranslucent);
+                editor.putBoolean("nailongVpnAutoProxy", nailongVpnAutoProxy);
+                editor.putString("nailongCustomBio", nailongCustomBio == null ? "" : nailongCustomBio);
+                editor.putBoolean("nailongQuickSave", nailongQuickSave);
                 editor.putBoolean("saveIncomingPhotos", saveIncomingPhotos);
                 editor.putString("passcodeHash1", passcodeHash);
                 editor.putString("passcodeSalt", passcodeSalt.length > 0 ? Base64.encodeToString(passcodeSalt, Base64.DEFAULT) : "");
@@ -599,6 +628,15 @@ public class SharedConfig {
             nailongNoPullNextChannel = preferences.getBoolean("nailongNoPullNextChannel", false);
             nailongFakePremium = preferences.getBoolean("nailongFakePremium", false);
             nailongTabletMode = preferences.getBoolean("nailongTabletMode", false);
+            nailongUploadSpeed = preferences.getInt("nailongUploadSpeed", 0);
+            nailongForwardNoQuote = preferences.getBoolean("nailongForwardNoQuote", false);
+            nailongMediaBestQuality = preferences.getBoolean("nailongMediaBestQuality", false);
+            nailongSponsoredTextOnly = preferences.getBoolean("nailongSponsoredTextOnly", false);
+            nailongForceTranslate = preferences.getBoolean("nailongForceTranslate", false);
+            nailongDeletedTranslucent = preferences.getBoolean("nailongDeletedTranslucent", false);
+            nailongVpnAutoProxy = preferences.getBoolean("nailongVpnAutoProxy", false);
+            nailongCustomBio = preferences.getString("nailongCustomBio", "");
+            nailongQuickSave = preferences.getBoolean("nailongQuickSave", false);
             saveIncomingPhotos = preferences.getBoolean("saveIncomingPhotos", false);
             passcodeHash = preferences.getString("passcodeHash1", "");
             appLocked = preferences.getBoolean("appLocked", false);

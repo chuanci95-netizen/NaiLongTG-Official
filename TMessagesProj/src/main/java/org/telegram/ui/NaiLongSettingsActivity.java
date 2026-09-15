@@ -43,6 +43,8 @@ public class NaiLongSettingsActivity extends BaseFragment {
 
     // 下载加速档位名(index=SharedConfig.nailongDownloadSpeed)
     private static final String[] DL_NAMES = {"关闭", "4倍加速", "12倍加速", "24倍加速", "极限加速"};
+    // 上传加速档位名(index=SharedConfig.nailongUploadSpeed)
+    private static final String[] UL_NAMES = {"关闭", "4倍加速", "12倍加速", "24倍加速", "极限加速"};
 
     // 分类(文件夹)
     private static final int CAT_ROOT = 0;
@@ -52,6 +54,7 @@ public class NaiLongSettingsActivity extends BaseFragment {
     private static final int CAT_DOWNLOAD = 4;
     private static final int CAT_UNLOCK = 5;
     private static final int CAT_PROFILE = 6;
+    private static final int CAT_TOOLS = 7;
 
     // 开关id
     private static final int ID_SHOW_DELETED = 1;
@@ -70,6 +73,14 @@ public class NaiLongSettingsActivity extends BaseFragment {
     private static final int ID_READ_ALL = 14;
     private static final int ID_FAKE_PREMIUM = 15;
     private static final int ID_TABLET_MODE = 16;
+    private static final int ID_UPLOAD_SPEED = 17;
+    private static final int ID_FORWARD_NO_QUOTE = 18;
+    private static final int ID_MEDIA_BEST = 19;
+    private static final int ID_FORCE_TRANSLATE = 20;
+    private static final int ID_QUICK_SAVE = 21;
+    private static final int ID_CUSTOM_BIO = 22;
+    private static final int ID_MUTE_ALL = 23;
+    private static final int ID_DEVICE_INFO = 24;
 
     private final int category;
 
@@ -89,6 +100,7 @@ public class NaiLongSettingsActivity extends BaseFragment {
             case CAT_DOWNLOAD: return "下载与媒体";
             case CAT_UNLOCK: return "解锁增强";
             case CAT_PROFILE: return "个人资料美化";
+            case CAT_TOOLS: return "工具箱";
             default: return "高级设置";
         }
     }
@@ -116,12 +128,15 @@ public class NaiLongSettingsActivity extends BaseFragment {
             items.add(new Item(VIEW_TYPE_FOLDER, CAT_DOWNLOAD, "下载与媒体", null));
             items.add(new Item(VIEW_TYPE_FOLDER, CAT_PRIVACY, "隐私与安全", null));
             items.add(new Item(VIEW_TYPE_FOLDER, CAT_PROFILE, "个人资料美化", null));
+            items.add(new Item(VIEW_TYPE_FOLDER, CAT_TOOLS, "工具箱", null));
         } else if (category == CAT_MESSAGE) {
             items.add(new Item(VIEW_TYPE_HEADER, 0, "消息类", null));
             items.add(new Item(VIEW_TYPE_CHECK, ID_SHOW_DELETED, "防撤回", null));
             items.add(new Item(VIEW_TYPE_CHECK, ID_SHOW_EDITED, "无视编辑", null));
             items.add(new Item(VIEW_TYPE_CHECK, ID_SECONDS_TS, "精确到秒时间戳", null));
             items.add(new Item(VIEW_TYPE_CHECK, ID_NO_PULL_NEXT, "禁止下滑跳转下一个频道", null));
+            items.add(new Item(VIEW_TYPE_CHECK, ID_FORWARD_NO_QUOTE, "无引用转发(隐藏转发来源)", null));
+            items.add(new Item(VIEW_TYPE_CHECK, ID_FORCE_TRANSLATE, "强制开启翻译", null));
             items.add(new Item(VIEW_TYPE_SELECT, ID_READ_ALL, "一键已读所有对话", null));
         } else if (category == CAT_UNLOCK) {
             items.add(new Item(VIEW_TYPE_HEADER, 0, "功能增强", null));
@@ -132,8 +147,12 @@ public class NaiLongSettingsActivity extends BaseFragment {
         } else if (category == CAT_DOWNLOAD) {
             int lv = SharedConfig.nailongDownloadSpeed;
             if (lv < 0 || lv >= DL_NAMES.length) lv = 0;
+            int ul = SharedConfig.nailongUploadSpeed;
+            if (ul < 0 || ul >= UL_NAMES.length) ul = 0;
             items.add(new Item(VIEW_TYPE_HEADER, 0, "下载与媒体", null));
             items.add(new Item(VIEW_TYPE_SELECT, ID_DOWNLOAD_SPEED, "下载加速", DL_NAMES[lv]));
+            items.add(new Item(VIEW_TYPE_SELECT, ID_UPLOAD_SPEED, "上传加速", UL_NAMES[ul]));
+            items.add(new Item(VIEW_TYPE_CHECK, ID_MEDIA_BEST, "发送图片/视频默认最高质量", null));
         } else if (category == CAT_PRIVACY) {
             items.add(new Item(VIEW_TYPE_HEADER, 0, "隐私与安全", null));
             items.add(new Item(VIEW_TYPE_CHECK, ID_DISABLE_SECURE, "去除截图限制", null));
@@ -143,8 +162,15 @@ public class NaiLongSettingsActivity extends BaseFragment {
             items.add(new Item(VIEW_TYPE_CHECK, ID_HIDE_READ, "隐藏已读回执", null));
         } else if (category == CAT_PROFILE) {
             String cp = SharedConfig.nailongCustomPhone;
+            String cb = SharedConfig.nailongCustomBio;
             items.add(new Item(VIEW_TYPE_HEADER, 0, "个人资料美化", null));
             items.add(new Item(VIEW_TYPE_SELECT, ID_CUSTOM_PHONE, "自定义手机号", TextUtils.isEmpty(cp) ? "未设置" : cp));
+            items.add(new Item(VIEW_TYPE_SELECT, ID_CUSTOM_BIO, "自定义简介", TextUtils.isEmpty(cb) ? "未设置" : cb));
+        } else if (category == CAT_TOOLS) {
+            items.add(new Item(VIEW_TYPE_HEADER, 0, "工具箱", null));
+            items.add(new Item(VIEW_TYPE_SELECT, ID_READ_ALL, "一键已读所有对话", null));
+            items.add(new Item(VIEW_TYPE_SELECT, ID_MUTE_ALL, "一键静音所有对话", null));
+            items.add(new Item(VIEW_TYPE_SELECT, ID_DEVICE_INFO, "查看设备信息", null));
         }
     }
 
@@ -163,6 +189,9 @@ public class NaiLongSettingsActivity extends BaseFragment {
             case ID_NO_PULL_NEXT: return SharedConfig.nailongNoPullNextChannel;
             case ID_FAKE_PREMIUM: return SharedConfig.nailongFakePremium;
             case ID_TABLET_MODE: return SharedConfig.nailongTabletMode;
+            case ID_FORWARD_NO_QUOTE: return SharedConfig.nailongForwardNoQuote;
+            case ID_MEDIA_BEST: return SharedConfig.nailongMediaBestQuality;
+            case ID_FORCE_TRANSLATE: return SharedConfig.nailongForceTranslate;
         }
         return false;
     }
@@ -182,6 +211,9 @@ public class NaiLongSettingsActivity extends BaseFragment {
             case ID_NO_PULL_NEXT: SharedConfig.nailongNoPullNextChannel = !SharedConfig.nailongNoPullNextChannel; break;
             case ID_FAKE_PREMIUM: SharedConfig.nailongFakePremium = !SharedConfig.nailongFakePremium; break;
             case ID_TABLET_MODE: SharedConfig.nailongTabletMode = !SharedConfig.nailongTabletMode; break;
+            case ID_FORWARD_NO_QUOTE: SharedConfig.nailongForwardNoQuote = !SharedConfig.nailongForwardNoQuote; break;
+            case ID_MEDIA_BEST: SharedConfig.nailongMediaBestQuality = !SharedConfig.nailongMediaBestQuality; break;
+            case ID_FORCE_TRANSLATE: SharedConfig.nailongForceTranslate = !SharedConfig.nailongForceTranslate; break;
         }
         SharedConfig.saveConfig();
     }
@@ -226,10 +258,18 @@ public class NaiLongSettingsActivity extends BaseFragment {
             } else if (item.viewType == VIEW_TYPE_SELECT) {
                 if (item.id == ID_DOWNLOAD_SPEED) {
                     showDownloadSpeedDialog();
+                } else if (item.id == ID_UPLOAD_SPEED) {
+                    showUploadSpeedDialog();
                 } else if (item.id == ID_CUSTOM_PHONE) {
                     showCustomPhoneDialog();
+                } else if (item.id == ID_CUSTOM_BIO) {
+                    showCustomBioDialog();
                 } else if (item.id == ID_READ_ALL) {
                     markAllDialogsRead();
+                } else if (item.id == ID_MUTE_ALL) {
+                    muteAllDialogs();
+                } else if (item.id == ID_DEVICE_INFO) {
+                    showDeviceInfoDialog();
                 }
             }
         });
@@ -298,6 +338,102 @@ public class NaiLongSettingsActivity extends BaseFragment {
         } catch (Exception e) {
             org.telegram.messenger.FileLog.e(e);
         }
+    }
+
+    private void showUploadSpeedDialog() {
+        if (getParentActivity() == null) {
+            return;
+        }
+        AlertDialog.Builder b = new AlertDialog.Builder(getParentActivity());
+        b.setTitle("上传加速档位");
+        b.setItems(UL_NAMES, (dialog, which) -> {
+            SharedConfig.nailongUploadSpeed = which;
+            SharedConfig.saveConfig();
+            buildItems();
+            if (listView != null && listView.getAdapter() != null) {
+                listView.getAdapter().notifyDataSetChanged();
+            }
+        });
+        b.setNegativeButton("取消", null);
+        showDialog(b.create());
+    }
+
+    private void showCustomBioDialog() {
+        if (getParentActivity() == null) {
+            return;
+        }
+        final EditText editText = new EditText(getParentActivity());
+        editText.setText(SharedConfig.nailongCustomBio == null ? "" : SharedConfig.nailongCustomBio);
+        editText.setHint("留空 = 显示真实简介");
+        editText.setTextColor(Theme.getColor(Theme.key_dialogTextBlack));
+        editText.setHintTextColor(Theme.getColor(Theme.key_dialogTextHint));
+        editText.setPadding(AndroidUtilities.dp(22), AndroidUtilities.dp(6), AndroidUtilities.dp(22), AndroidUtilities.dp(6));
+        AlertDialog.Builder b = new AlertDialog.Builder(getParentActivity());
+        b.setTitle("自定义简介显示");
+        b.setView(editText);
+        b.setPositiveButton("保存", (dialog, which) -> {
+            SharedConfig.nailongCustomBio = editText.getText().toString().trim();
+            SharedConfig.saveConfig();
+            buildItems();
+            if (listView != null && listView.getAdapter() != null) {
+                listView.getAdapter().notifyDataSetChanged();
+            }
+        });
+        b.setNegativeButton("取消", null);
+        showDialog(b.create());
+    }
+
+    private void muteAllDialogs() {
+        try {
+            java.util.ArrayList<TLRPC.Dialog> dialogs = getMessagesController().getAllDialogs();
+            int n = 0;
+            for (int i = 0; i < dialogs.size(); i++) {
+                TLRPC.Dialog d = dialogs.get(i);
+                if (d == null || d.id == 0 || d instanceof TLRPC.TL_dialogFolder) {
+                    continue;
+                }
+                if (!getMessagesController().isDialogMuted(d.id, 0)) {
+                    org.telegram.messenger.NotificationsController.getInstance(currentAccount).muteDialog(d.id, 0, true);
+                    n++;
+                }
+            }
+            if (getParentActivity() != null) {
+                Toast.makeText(getParentActivity(), "已静音 " + n + " 个对话", Toast.LENGTH_SHORT).show();
+            }
+        } catch (Exception e) {
+            org.telegram.messenger.FileLog.e(e);
+        }
+    }
+
+    private void showDeviceInfoDialog() {
+        if (getParentActivity() == null) {
+            return;
+        }
+        StringBuilder sb = new StringBuilder();
+        try {
+            sb.append("厂商: ").append(android.os.Build.MANUFACTURER).append("\n");
+            sb.append("型号: ").append(android.os.Build.MODEL).append("\n");
+            sb.append("品牌: ").append(android.os.Build.BRAND).append("\n");
+            sb.append("设备代号: ").append(android.os.Build.DEVICE).append("\n");
+            sb.append("Android版本: ").append(android.os.Build.VERSION.RELEASE).append(" (SDK ").append(android.os.Build.VERSION.SDK_INT).append(")\n");
+            String abi = (android.os.Build.SUPPORTED_ABIS != null && android.os.Build.SUPPORTED_ABIS.length > 0) ? android.os.Build.SUPPORTED_ABIS[0] : "?";
+            sb.append("CPU架构: ").append(abi).append("\n");
+            android.util.DisplayMetrics dm = getParentActivity().getResources().getDisplayMetrics();
+            sb.append("屏幕: ").append(dm.widthPixels).append("x").append(dm.heightPixels).append(" @ ").append(dm.densityDpi).append("dpi\n");
+            sb.append("平板模式: ").append(AndroidUtilities.isTablet() ? "是" : "否").append("\n");
+            try {
+                android.content.pm.PackageInfo pi = getParentActivity().getPackageManager().getPackageInfo(getParentActivity().getPackageName(), 0);
+                sb.append("应用版本: ").append(pi.versionName).append("\n");
+                sb.append("包名: ").append(getParentActivity().getPackageName());
+            } catch (Exception ignore) {}
+        } catch (Exception e) {
+            sb.append("读取失败: ").append(e.getMessage());
+        }
+        AlertDialog.Builder b = new AlertDialog.Builder(getParentActivity());
+        b.setTitle("设备信息与参数");
+        b.setMessage(sb.toString());
+        b.setPositiveButton("确定", null);
+        showDialog(b.create());
     }
 
     private class ListAdapter extends RecyclerListView.SelectionAdapter {

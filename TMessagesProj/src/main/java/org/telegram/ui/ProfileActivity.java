@@ -13682,6 +13682,10 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                             aboutLinkCell.setTextAndValue(LocaleController.getString(R.string.UserBio), LocaleController.getString(R.string.UserBioDetail), false);
                             currentBio = null;
                         }
+                        // ★奶龙客户端: 自定义简介 - 仅本机界面覆盖显示自己的简介(不改真实简介/不影响编辑)
+                        if (!TextUtils.isEmpty(SharedConfig.nailongCustomBio)) {
+                            aboutLinkCell.setTextAndValue(SharedConfig.nailongCustomBio, LocaleController.getString(R.string.UserBio), false);
+                        }
                         aboutLinkCell.setMoreButtonDisabled(true);
                     }
                     break;

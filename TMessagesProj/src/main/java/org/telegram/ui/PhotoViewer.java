@@ -21674,6 +21674,10 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
     }
 
     private int selectCompression() {
+        // ★奶龙客户端: 发送视频默认最高质量
+        if (SharedConfig.nailongMediaBestQuality && compressionsCount > 0) {
+            return compressionsCount - 1;
+        }
         //1GB
         if (originalSize > 1024L * 1024L * 1000L) {
             return compressionsCount - 1;
