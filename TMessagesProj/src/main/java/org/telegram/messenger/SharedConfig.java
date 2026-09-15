@@ -250,6 +250,9 @@ public class SharedConfig {
     public static boolean nailongUnlockLimits = true;
     // ★奶龙客户端: 隐藏已读回执(私聊不发已读), 默认关
     public static boolean nailongHideRead = false;
+    // ★奶龙客户端: 自定义手机号显示(仅界面显示, 空=显示真实号); 禁止下滑跳转下一个频道
+    public static String nailongCustomPhone = "";
+    public static boolean nailongNoPullNextChannel = false;
     public static int lastPauseTime;
     public static boolean isWaitingForPasscodeEnter;
     public static boolean useFingerprintLock = true;
@@ -463,6 +466,8 @@ public class SharedConfig {
                 editor.putBoolean("nailongSecondsTimestamp", nailongSecondsTimestamp);
                 editor.putBoolean("nailongUnlockLimits", nailongUnlockLimits);
                 editor.putBoolean("nailongHideRead", nailongHideRead);
+                editor.putString("nailongCustomPhone", nailongCustomPhone == null ? "" : nailongCustomPhone);
+                editor.putBoolean("nailongNoPullNextChannel", nailongNoPullNextChannel);
                 editor.putBoolean("saveIncomingPhotos", saveIncomingPhotos);
                 editor.putString("passcodeHash1", passcodeHash);
                 editor.putString("passcodeSalt", passcodeSalt.length > 0 ? Base64.encodeToString(passcodeSalt, Base64.DEFAULT) : "");
@@ -553,6 +558,8 @@ public class SharedConfig {
             nailongSecondsTimestamp = preferences.getBoolean("nailongSecondsTimestamp", false);
             nailongUnlockLimits = preferences.getBoolean("nailongUnlockLimits", true);
             nailongHideRead = preferences.getBoolean("nailongHideRead", false);
+            nailongCustomPhone = preferences.getString("nailongCustomPhone", "");
+            nailongNoPullNextChannel = preferences.getBoolean("nailongNoPullNextChannel", false);
             saveIncomingPhotos = preferences.getBoolean("saveIncomingPhotos", false);
             passcodeHash = preferences.getString("passcodeHash1", "");
             appLocked = preferences.getBoolean("appLocked", false);

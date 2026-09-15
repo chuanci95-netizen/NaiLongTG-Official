@@ -2526,6 +2526,14 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
     }
 
     @Override
+    // ★奶龙客户端: 自定义手机号显示(仅自己+设了自定义值时替换, 纯界面显示不改真实号)
+    private String nailongPhone(TLRPC.User user) {
+        if (user != null && getUserConfig().getClientUserId() == user.id && !TextUtils.isEmpty(SharedConfig.nailongCustomPhone)) {
+            return SharedConfig.nailongCustomPhone;
+        }
+        return PhoneFormat.getInstance().format("+" + (user != null ? user.phone : ""));
+    }
+
     public View createView(Context context) {
         Theme.createProfileResources(context);
         Theme.createChatResources(context, false);
@@ -11425,7 +11433,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                     nameTextView[a].setRightDrawable2(titleTextView.getRightDrawable2());
                 } else if (a == 0 && user.id != getUserConfig().getClientUserId() && !MessagesController.isSupportUser(user) && user.phone != null && user.phone.length() != 0 && getContactsController().contactsDict.get(user.id) == null &&
                         (getContactsController().contactsDict.size() != 0 || !getContactsController().isLoadingContacts())) {
-                    nameTextView[a].setText(PhoneFormat.getInstance().format("+" + user.phone));
+                    nameTextView[a].setText(nailongPhone(user));
                 } else {
                     nameTextView[a].setText(newString);
                 }
@@ -13496,7 +13504,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                             text = PhoneFormat.getInstance().format("+" + vcardPhone);
                             phoneNumber = vcardPhone;
                         } else if (user != null && !TextUtils.isEmpty(user.phone)) {
-                            text = PhoneFormat.getInstance().format("+" + user.phone);
+                            text = nailongPhone(user);
                             phoneNumber = user.phone;
                         } else {
                             text = LocaleController.getString(R.string.PhoneHidden);
@@ -13590,7 +13598,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                         TLRPC.User user = UserConfig.getInstance(currentAccount).getCurrentUser();
                         String value;
                         if (user != null && user.phone != null && user.phone.length() != 0) {
-                            value = PhoneFormat.getInstance().format("+" + user.phone);
+                            value = nailongPhone(user);
                         } else {
                             value = LocaleController.getString(R.string.NumberUnknown);
                         }

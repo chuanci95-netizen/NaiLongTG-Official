@@ -11131,6 +11131,10 @@ public class ChatActivity extends BaseFragment implements
     }
 
     private void animateToNextChat() {
+        if (SharedConfig.nailongNoPullNextChannel) {
+            // ★奶龙客户端: 禁止下滑跳转下一个频道
+            return;
+        }
         if (pullingDownDrawable == null) {
             return;
         }

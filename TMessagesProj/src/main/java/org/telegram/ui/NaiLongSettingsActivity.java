@@ -4,7 +4,10 @@ import android.content.Context;
 import android.text.TextUtils;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.FrameLayout;
+
+import org.telegram.messenger.AndroidUtilities;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -46,6 +49,7 @@ public class NaiLongSettingsActivity extends BaseFragment {
     private static final int CAT_CLEAN = 3;
     private static final int CAT_DOWNLOAD = 4;
     private static final int CAT_UNLOCK = 5;
+    private static final int CAT_PROFILE = 6;
 
     // 开关id
     private static final int ID_SHOW_DELETED = 1;
@@ -59,6 +63,8 @@ public class NaiLongSettingsActivity extends BaseFragment {
     private static final int ID_SECONDS_TS = 9;
     private static final int ID_UNLOCK_LIMITS = 10;
     private static final int ID_HIDE_READ = 11;
+    private static final int ID_CUSTOM_PHONE = 12;
+    private static final int ID_NO_PULL_NEXT = 13;
 
     private final int category;
 
@@ -77,6 +83,7 @@ public class NaiLongSettingsActivity extends BaseFragment {
             case CAT_CLEAN: return "净化";
             case CAT_DOWNLOAD: return "下载与媒体";
             case CAT_UNLOCK: return "解锁增强";
+            case CAT_PROFILE: return "个人资料美化";
             default: return "高级设置";
         }
     }
@@ -104,6 +111,7 @@ public class NaiLongSettingsActivity extends BaseFragment {
             items.add(new Item(VIEW_TYPE_FOLDER, CAT_DOWNLOAD, "下载与媒体", "下载加速档位"));
             items.add(new Item(VIEW_TYPE_FOLDER, CAT_PRIVACY, "隐私与安全", "去截图 / 转发保存 / 隐藏在线输入"));
             items.add(new Item(VIEW_TYPE_FOLDER, CAT_UNLOCK, "解锁增强", "分组/频道群组/置顶等无上限"));
+            items.add(new Item(VIEW_TYPE_FOLDER, CAT_PROFILE, "个人资料美化", "自定义手机号显示"));
             items.add(new Item(VIEW_TYPE_FOLDER, CAT_CLEAN, "净化", "去除频道广告"));
             items.add(new Item(VIEW_TYPE_SHADOW, 0, "更多功能(界面美化/翻译等)陆续加入各分类。", null));
         } else if (category == CAT_MESSAGE) {
@@ -111,7 +119,8 @@ public class NaiLongSettingsActivity extends BaseFragment {
             items.add(new Item(VIEW_TYPE_CHECK, ID_SHOW_DELETED, "防撤回(保留被撤回的消息)", null));
             items.add(new Item(VIEW_TYPE_CHECK, ID_SHOW_EDITED, "无视编辑(保留全部编辑历史)", null));
             items.add(new Item(VIEW_TYPE_CHECK, ID_SECONDS_TS, "精确到秒时间戳", null));
-            items.add(new Item(VIEW_TYPE_SHADOW, 0, "防撤回: 别人双向删除(delete for everyone)的消息也会保留并标\"已删除\"。\n无视编辑: 每次编辑前的原文都保留, 消息下方列出全部编辑历史。\n精确到秒: 消息时间显示到秒(切换后重进聊天生效)。", null));
+            items.add(new Item(VIEW_TYPE_CHECK, ID_NO_PULL_NEXT, "禁止下滑跳转下一个频道", null));
+            items.add(new Item(VIEW_TYPE_SHADOW, 0, "防撤回: 别人双向删除(delete for everyone)的消息也会保留并标\"已删除\"。\n无视编辑: 每次编辑前的原文都保留, 消息下方列出全部编辑历史。\n精确到秒: 消息时间显示到秒(切换后重进聊天生效)。\n禁止下滑跳转: 频道底部下滑不再跳到下一个频道。", null));
         } else if (category == CAT_PRIVACY) {
             items.add(new Item(VIEW_TYPE_HEADER, 0, "隐私与安全", null));
             items.add(new Item(VIEW_TYPE_CHECK, ID_DISABLE_SECURE, "去除截图限制", null));
@@ -128,6 +137,11 @@ public class NaiLongSettingsActivity extends BaseFragment {
             items.add(new Item(VIEW_TYPE_HEADER, 0, "解锁增强", null));
             items.add(new Item(VIEW_TYPE_CHECK, ID_UNLOCK_LIMITS, "突破各种上限", null));
             items.add(new Item(VIEW_TYPE_SHADOW, 0, "非会员也放开: 聊天分组数、加入频道/群组数、置顶对话数、收藏贴纸、保存GIF、公开链接数量上限(切换后重启生效)。", null));
+        } else if (category == CAT_PROFILE) {
+            String cp = SharedConfig.nailongCustomPhone;
+            items.add(new Item(VIEW_TYPE_HEADER, 0, "个人资料美化", null));
+            items.add(new Item(VIEW_TYPE_SELECT, ID_CUSTOM_PHONE, "自定义手机号", TextUtils.isEmpty(cp) ? "未设置" : cp));
+            items.add(new Item(VIEW_TYPE_SHADOW, 0, "自定义个人资料/设置页显示的手机号(仅本机界面显示, 不改真实号码)。留空=显示真实号。", null));
         } else if (category == CAT_DOWNLOAD) {
             int lv = SharedConfig.nailongDownloadSpeed;
             if (lv < 0 || lv >= DL_NAMES.length) lv = 0;
@@ -149,6 +163,7 @@ public class NaiLongSettingsActivity extends BaseFragment {
             case ID_SECONDS_TS: return SharedConfig.nailongSecondsTimestamp;
             case ID_UNLOCK_LIMITS: return SharedConfig.nailongUnlockLimits;
             case ID_HIDE_READ: return SharedConfig.nailongHideRead;
+            case ID_NO_PULL_NEXT: return SharedConfig.nailongNoPullNextChannel;
         }
         return false;
     }
@@ -165,6 +180,7 @@ public class NaiLongSettingsActivity extends BaseFragment {
             case ID_SECONDS_TS: SharedConfig.nailongSecondsTimestamp = !SharedConfig.nailongSecondsTimestamp; break;
             case ID_UNLOCK_LIMITS: SharedConfig.nailongUnlockLimits = !SharedConfig.nailongUnlockLimits; break;
             case ID_HIDE_READ: SharedConfig.nailongHideRead = !SharedConfig.nailongHideRead; break;
+            case ID_NO_PULL_NEXT: SharedConfig.nailongNoPullNextChannel = !SharedConfig.nailongNoPullNextChannel; break;
         }
         SharedConfig.saveConfig();
     }
@@ -209,6 +225,8 @@ public class NaiLongSettingsActivity extends BaseFragment {
             } else if (item.viewType == VIEW_TYPE_SELECT) {
                 if (item.id == ID_DOWNLOAD_SPEED) {
                     showDownloadSpeedDialog();
+                } else if (item.id == ID_CUSTOM_PHONE) {
+                    showCustomPhoneDialog();
                 }
             }
         });
@@ -224,6 +242,31 @@ public class NaiLongSettingsActivity extends BaseFragment {
         b.setTitle("下载加速档位");
         b.setItems(DL_NAMES, (dialog, which) -> {
             SharedConfig.nailongDownloadSpeed = which;
+            SharedConfig.saveConfig();
+            buildItems();
+            if (listView != null && listView.getAdapter() != null) {
+                listView.getAdapter().notifyDataSetChanged();
+            }
+        });
+        b.setNegativeButton("取消", null);
+        showDialog(b.create());
+    }
+
+    private void showCustomPhoneDialog() {
+        if (getParentActivity() == null) {
+            return;
+        }
+        final EditText editText = new EditText(getParentActivity());
+        editText.setText(SharedConfig.nailongCustomPhone == null ? "" : SharedConfig.nailongCustomPhone);
+        editText.setHint("留空 = 显示真实手机号");
+        editText.setTextColor(Theme.getColor(Theme.key_dialogTextBlack));
+        editText.setHintTextColor(Theme.getColor(Theme.key_dialogTextHint));
+        editText.setPadding(AndroidUtilities.dp(22), AndroidUtilities.dp(6), AndroidUtilities.dp(22), AndroidUtilities.dp(6));
+        AlertDialog.Builder b = new AlertDialog.Builder(getParentActivity());
+        b.setTitle("自定义手机号显示");
+        b.setView(editText);
+        b.setPositiveButton("保存", (dialog, which) -> {
+            SharedConfig.nailongCustomPhone = editText.getText().toString().trim();
             SharedConfig.saveConfig();
             buildItems();
             if (listView != null && listView.getAdapter() != null) {
