@@ -6,8 +6,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.FrameLayout;
+import android.widget.Toast;
 
 import org.telegram.messenger.AndroidUtilities;
+import org.telegram.tgnet.TLRPC;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -65,6 +67,7 @@ public class NaiLongSettingsActivity extends BaseFragment {
     private static final int ID_HIDE_READ = 11;
     private static final int ID_CUSTOM_PHONE = 12;
     private static final int ID_NO_PULL_NEXT = 13;
+    private static final int ID_READ_ALL = 14;
 
     private final int category;
 
@@ -120,6 +123,7 @@ public class NaiLongSettingsActivity extends BaseFragment {
             items.add(new Item(VIEW_TYPE_CHECK, ID_SHOW_EDITED, "无视编辑(保留全部编辑历史)", null));
             items.add(new Item(VIEW_TYPE_CHECK, ID_SECONDS_TS, "精确到秒时间戳", null));
             items.add(new Item(VIEW_TYPE_CHECK, ID_NO_PULL_NEXT, "禁止下滑跳转下一个频道", null));
+            items.add(new Item(VIEW_TYPE_SELECT, ID_READ_ALL, "一键已读所有对话", "点击执行"));
             items.add(new Item(VIEW_TYPE_SHADOW, 0, "防撤回: 别人双向删除(delete for everyone)的消息也会保留并标\"已删除\"。\n无视编辑: 每次编辑前的原文都保留, 消息下方列出全部编辑历史。\n精确到秒: 消息时间显示到秒(切换后重进聊天生效)。\n禁止下滑跳转: 频道底部下滑不再跳到下一个频道。", null));
         } else if (category == CAT_PRIVACY) {
             items.add(new Item(VIEW_TYPE_HEADER, 0, "隐私与安全", null));
@@ -227,6 +231,8 @@ public class NaiLongSettingsActivity extends BaseFragment {
                     showDownloadSpeedDialog();
                 } else if (item.id == ID_CUSTOM_PHONE) {
                     showCustomPhoneDialog();
+                } else if (item.id == ID_READ_ALL) {
+                    markAllDialogsRead();
                 }
             }
         });
@@ -275,6 +281,26 @@ public class NaiLongSettingsActivity extends BaseFragment {
         });
         b.setNegativeButton("取消", null);
         showDialog(b.create());
+    }
+
+    private void markAllDialogsRead() {
+        try {
+            java.util.ArrayList<TLRPC.Dialog> dialogs = getMessagesController().getAllDialogs();
+            int n = 0;
+            for (int i = 0; i < dialogs.size(); i++) {
+                TLRPC.Dialog d = dialogs.get(i);
+                if (d == null || d.id == 0 || d.unread_count <= 0 || d instanceof TLRPC.TL_dialogFolder) {
+                    continue;
+                }
+                getMessagesController().markDialogAsRead(d.id, d.top_message, d.top_message, d.last_message_date, false, 0, 0, true, 0);
+                n++;
+            }
+            if (getParentActivity() != null) {
+                Toast.makeText(getParentActivity(), "已把 " + n + " 个对话标为已读", Toast.LENGTH_SHORT).show();
+            }
+        } catch (Exception e) {
+            org.telegram.messenger.FileLog.e(e);
+        }
     }
 
     private class ListAdapter extends RecyclerListView.SelectionAdapter {
