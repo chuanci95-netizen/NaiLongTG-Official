@@ -696,6 +696,7 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
         items.add(SettingCell.Factory.of(7, IconBackgroundColors.BLUE_ALT.top, IconBackgroundColors.BLUE_ALT.bottom, R.drawable.settings_folders, getString(R.string.SettingsFolders), getString(R.string.SettingsFoldersInfo)));
         items.add(SettingCell.Factory.of(8, IconBackgroundColors.CYAN.top, IconBackgroundColors.CYAN.bottom, R.drawable.settings_devices, getString(R.string.SettingsDevices), getString(R.string.SettingsDevicesInfo)));
         items.add(SettingCell.Factory.of(9, IconBackgroundColors.ORANGE_DEEP.top, IconBackgroundColors.ORANGE_DEEP.bottom, R.drawable.settings_power, getString(R.string.SettingsPowerSaving), getString(R.string.SettingsPowerSavingInfo)));
+        items.add(SettingCell.Factory.of(100, IconBackgroundColors.GREEN.top, IconBackgroundColors.GREEN.bottom, R.drawable.settings_features, "高级设置")); // ★奶龙客户端: 高级设置入口
         items.add(SettingCell.Factory.of(10, IconBackgroundColors.PURPLE.top, IconBackgroundColors.PURPLE.bottom, R.drawable.settings_language, getString(R.string.SettingsLanguage), LocaleController.getCurrentLanguageName()));
 
         items.add(UItem.asShadow(null));
@@ -836,6 +837,9 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
             case 10:
                 presentSettingFragment(new LanguageSelectActivity());
                 break;
+            case 100: // ★奶龙客户端: 高级设置
+                presentSettingFragment(new NaiLongSettingsActivity());
+                break;
 
             case 11:
                 presentSettingFragment(new PremiumPreviewFragment("settings"));
@@ -917,23 +921,8 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
     public String getVersionName() {
         try {
             PackageInfo pInfo = ApplicationLoader.applicationContext.getPackageManager().getPackageInfo(ApplicationLoader.applicationContext.getPackageName(), 0);
-            int code = pInfo.versionCode / 10;
-            String abi = "";
-            switch (pInfo.versionCode % 10) {
-                case 1:
-                case 2:
-                    abi = "store bundled " + Build.CPU_ABI + " " + Build.CPU_ABI2;
-                    break;
-                default:
-                case 9:
-                    if (ApplicationLoader.isStandaloneBuild()) {
-                        abi = "direct " + Build.CPU_ABI + " " + Build.CPU_ABI2;
-                    } else {
-                        abi = "universal " + Build.CPU_ABI + " " + Build.CPU_ABI2;
-                    }
-                    break;
-            }
-            return formatString(R.string.TelegramVersion, String.format(Locale.US, "v%s (%d)\n%s", pInfo.versionName, code, abi));
+            // ★奶龙客户端: 版本行固定"奶龙客户端 v版本号"(去掉Telegram/build号/abi/direct)
+            return "奶龙客户端 v" + pInfo.versionName;
         } catch (Exception e) {
             FileLog.e(e);
         }
