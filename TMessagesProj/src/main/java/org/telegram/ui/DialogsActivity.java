@@ -3520,8 +3520,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                 logoDrawable = context.getResources().getDrawable(R.drawable.telegram_logo_2).mutate();
                 logoDrawable.setBounds(0, dp(2), logoDrawable.getIntrinsicWidth(), dp(2) + logoDrawable.getIntrinsicHeight());
                 logoDrawable.setColorFilter(getThemedColor(Theme.key_telegram_color_dialogsLogo), PorterDuff.Mode.MULTIPLY);
-                SpannableStringBuilder ssb = new SpannableStringBuilder(getString(R.string.AppName));
-                // ★奶龙客户端: 不用telegram_logo_2图片盖住标题, 直接显示"奶龙客户端"文字
+                // ★奶龙客户端: 硬编码标题"奶龙客户端"(云端语言包AppName=Telegram会盖掉本地strings, 故不用getString)+ 不用telegram_logo_2图片
+                SpannableStringBuilder ssb = new SpannableStringBuilder("奶龙客户端");
                 actionBar.setTitle(ssb, statusDrawable);
                 updateStatus(UserConfig.getInstance(currentAccount).getCurrentUser(), false);
             }
