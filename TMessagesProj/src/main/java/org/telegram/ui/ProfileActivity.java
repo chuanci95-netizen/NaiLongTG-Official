@@ -2525,7 +2525,6 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         }
     }
 
-    @Override
     // ★奶龙客户端: 自定义手机号显示(仅自己+设了自定义值时替换, 纯界面显示不改真实号)
     private String nailongPhone(TLRPC.User user) {
         if (user != null && getUserConfig().getClientUserId() == user.id && !TextUtils.isEmpty(SharedConfig.nailongCustomPhone)) {
@@ -2534,6 +2533,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         return PhoneFormat.getInstance().format("+" + (user != null ? user.phone : ""));
     }
 
+    @Override
     public View createView(Context context) {
         Theme.createProfileResources(context);
         Theme.createChatResources(context, false);
