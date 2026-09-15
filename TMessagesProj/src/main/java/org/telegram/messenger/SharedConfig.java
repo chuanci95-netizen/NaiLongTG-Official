@@ -276,6 +276,8 @@ public class SharedConfig {
     public static String nailongCustomBio = "";
     // 长按消息直接收藏到"收藏夹", 默认关
     public static boolean nailongQuickSave = false;
+    // 表情包/贴纸大小(14=原始, 越大越大, 范围约8-20), 默认14
+    public static int nailongStickerSize = 14;
     // ★奶龙客户端 大批量新增功能开关 ↑↑↑
     public static int lastPauseTime;
     public static boolean isWaitingForPasscodeEnter;
@@ -534,6 +536,7 @@ public class SharedConfig {
                 editor.putBoolean("nailongVpnAutoProxy", nailongVpnAutoProxy);
                 editor.putString("nailongCustomBio", nailongCustomBio == null ? "" : nailongCustomBio);
                 editor.putBoolean("nailongQuickSave", nailongQuickSave);
+                editor.putInt("nailongStickerSize", nailongStickerSize);
                 editor.putBoolean("saveIncomingPhotos", saveIncomingPhotos);
                 editor.putString("passcodeHash1", passcodeHash);
                 editor.putString("passcodeSalt", passcodeSalt.length > 0 ? Base64.encodeToString(passcodeSalt, Base64.DEFAULT) : "");
@@ -637,6 +640,7 @@ public class SharedConfig {
             nailongVpnAutoProxy = preferences.getBoolean("nailongVpnAutoProxy", false);
             nailongCustomBio = preferences.getString("nailongCustomBio", "");
             nailongQuickSave = preferences.getBoolean("nailongQuickSave", false);
+            nailongStickerSize = preferences.getInt("nailongStickerSize", 14);
             saveIncomingPhotos = preferences.getBoolean("saveIncomingPhotos", false);
             passcodeHash = preferences.getString("passcodeHash1", "");
             appLocked = preferences.getBoolean("appLocked", false);

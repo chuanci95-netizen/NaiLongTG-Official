@@ -45,6 +45,9 @@ public class NaiLongSettingsActivity extends BaseFragment {
     private static final String[] DL_NAMES = {"关闭", "4倍加速", "12倍加速", "24倍加速", "极限加速"};
     // 上传加速档位名(index=SharedConfig.nailongUploadSpeed)
     private static final String[] UL_NAMES = {"关闭", "4倍加速", "12倍加速", "24倍加速", "极限加速"};
+    // 表情包大小档位: 名字 + 对应值(SharedConfig.nailongStickerSize)
+    private static final String[] STK_NAMES = {"小", "默认", "大", "超大"};
+    private static final int[] STK_VALUES = {10, 14, 17, 20};
 
     // 分类(文件夹)
     private static final int CAT_ROOT = 0;
@@ -81,6 +84,7 @@ public class NaiLongSettingsActivity extends BaseFragment {
     private static final int ID_CUSTOM_BIO = 22;
     private static final int ID_MUTE_ALL = 23;
     private static final int ID_DEVICE_INFO = 24;
+    private static final int ID_STICKER_SIZE = 25;
 
     private final int category;
 
@@ -153,6 +157,7 @@ public class NaiLongSettingsActivity extends BaseFragment {
             items.add(new Item(VIEW_TYPE_SELECT, ID_DOWNLOAD_SPEED, "下载加速", DL_NAMES[lv]));
             items.add(new Item(VIEW_TYPE_SELECT, ID_UPLOAD_SPEED, "上传加速", UL_NAMES[ul]));
             items.add(new Item(VIEW_TYPE_CHECK, ID_MEDIA_BEST, "发送图片/视频默认最高质量", null));
+            items.add(new Item(VIEW_TYPE_SELECT, ID_STICKER_SIZE, "表情包/贴纸大小", stkName()));
         } else if (category == CAT_PRIVACY) {
             items.add(new Item(VIEW_TYPE_HEADER, 0, "隐私与安全", null));
             items.add(new Item(VIEW_TYPE_CHECK, ID_DISABLE_SECURE, "去除截图限制", null));
@@ -270,6 +275,8 @@ public class NaiLongSettingsActivity extends BaseFragment {
                     muteAllDialogs();
                 } else if (item.id == ID_DEVICE_INFO) {
                     showDeviceInfoDialog();
+                } else if (item.id == ID_STICKER_SIZE) {
+                    showStickerSizeDialog();
                 }
             }
         });
@@ -338,6 +345,32 @@ public class NaiLongSettingsActivity extends BaseFragment {
         } catch (Exception e) {
             org.telegram.messenger.FileLog.e(e);
         }
+    }
+
+    private static String stkName() {
+        int v = SharedConfig.nailongStickerSize;
+        for (int i = 0; i < STK_VALUES.length; i++) {
+            if (STK_VALUES[i] == v) return STK_NAMES[i];
+        }
+        return String.valueOf(v);
+    }
+
+    private void showStickerSizeDialog() {
+        if (getParentActivity() == null) {
+            return;
+        }
+        AlertDialog.Builder b = new AlertDialog.Builder(getParentActivity());
+        b.setTitle("表情包/贴纸大小");
+        b.setItems(STK_NAMES, (dialog, which) -> {
+            SharedConfig.nailongStickerSize = STK_VALUES[which];
+            SharedConfig.saveConfig();
+            buildItems();
+            if (listView != null && listView.getAdapter() != null) {
+                listView.getAdapter().notifyDataSetChanged();
+            }
+        });
+        b.setNegativeButton("取消", null);
+        showDialog(b.create());
     }
 
     private void showUploadSpeedDialog() {
