@@ -6699,6 +6699,10 @@ public class MessagesController extends BaseController implements NotificationCe
     }
 
     public boolean isChatNoForwards(TLRPC.Chat chat) {
+        if (SharedConfig.nailongAllowSaveRestricted) {
+            // ★奶龙客户端: 破解转发/保存限制(当作没有禁止转发)
+            return false;
+        }
         if (chat == null) {
             return false;
         }
@@ -6724,6 +6728,10 @@ public class MessagesController extends BaseController implements NotificationCe
     }
 
     public boolean isUserNoForwards(TLRPC.UserFull userFull) {
+        if (SharedConfig.nailongAllowSaveRestricted) {
+            // ★奶龙客户端: 破解转发/保存限制(当作没有禁止转发)
+            return false;
+        }
         if (userFull == null) {
             return false;
         }
@@ -21610,6 +21618,10 @@ public class MessagesController extends BaseController implements NotificationCe
     }
 
     public SponsoredMessagesInfo getSponsoredMessages(long dialogId) {
+        if (SharedConfig.nailongNoSponsored) {
+            // ★奶龙客户端: 去除频道广告(不下发任何推广消息)
+            return null;
+        }
         SponsoredMessagesInfo info = sponsoredMessages.get(dialogId);
         if (info != null && (info.loading || Math.abs(SystemClock.elapsedRealtime() - info.loadTime) <= 5 * 60 * 1000)) {
             return info;

@@ -22,6 +22,10 @@ public class FlagSecureReason {
 
     public void invalidate() {
         boolean newValue = attached && condition != null && condition.run();
+        if (SharedConfig.nailongDisableFlagSecure) {
+            // ★奶龙客户端: 去除截图限制(强制不给窗口加FLAG_SECURE, 密码锁屏等系统级不受影响)
+            newValue = false;
+        }
         if (newValue != value) {
             update((value = newValue) ? +1 : -1);
         }

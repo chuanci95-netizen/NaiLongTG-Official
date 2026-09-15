@@ -236,6 +236,10 @@ public class SharedConfig {
     // ★奶龙客户端: 防撤回(保留被删消息+标已删除) / 无视编辑(显示编辑前原文), 默认开启
     public static boolean nailongShowDeleted = true;
     public static boolean nailongShowEdited = true;
+    // ★奶龙客户端: 去频道广告 / 破解转发保存限制 / 去除截图限制, 默认开启
+    public static boolean nailongNoSponsored = true;
+    public static boolean nailongAllowSaveRestricted = true;
+    public static boolean nailongDisableFlagSecure = true;
     public static int lastPauseTime;
     public static boolean isWaitingForPasscodeEnter;
     public static boolean useFingerprintLock = true;
@@ -440,6 +444,9 @@ public class SharedConfig {
                 SharedPreferences.Editor editor = preferences.edit();
                 editor.putBoolean("nailongShowDeleted", nailongShowDeleted);
                 editor.putBoolean("nailongShowEdited", nailongShowEdited);
+                editor.putBoolean("nailongNoSponsored", nailongNoSponsored);
+                editor.putBoolean("nailongAllowSaveRestricted", nailongAllowSaveRestricted);
+                editor.putBoolean("nailongDisableFlagSecure", nailongDisableFlagSecure);
                 editor.putBoolean("saveIncomingPhotos", saveIncomingPhotos);
                 editor.putString("passcodeHash1", passcodeHash);
                 editor.putString("passcodeSalt", passcodeSalt.length > 0 ? Base64.encodeToString(passcodeSalt, Base64.DEFAULT) : "");
@@ -521,6 +528,9 @@ public class SharedConfig {
             SharedPreferences preferences = ApplicationLoader.applicationContext.getSharedPreferences("userconfing", Context.MODE_PRIVATE);
             nailongShowDeleted = preferences.getBoolean("nailongShowDeleted", true);
             nailongShowEdited = preferences.getBoolean("nailongShowEdited", true);
+            nailongNoSponsored = preferences.getBoolean("nailongNoSponsored", true);
+            nailongAllowSaveRestricted = preferences.getBoolean("nailongAllowSaveRestricted", true);
+            nailongDisableFlagSecure = preferences.getBoolean("nailongDisableFlagSecure", true);
             saveIncomingPhotos = preferences.getBoolean("saveIncomingPhotos", false);
             passcodeHash = preferences.getString("passcodeHash1", "");
             appLocked = preferences.getBoolean("appLocked", false);
