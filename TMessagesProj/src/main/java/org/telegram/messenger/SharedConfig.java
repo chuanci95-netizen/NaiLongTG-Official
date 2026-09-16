@@ -283,6 +283,8 @@ public class SharedConfig {
     // 自动回复(收到私聊别人消息自动回一条, 每对话每次启动只回一次防刷屏), 默认关 + 回复文本
     public static boolean nailongAutoReply = false;
     public static String nailongAutoReplyText = "我现在有事不在，稍后回复你。";
+    // 本地名称颜色(聊天里发送者名字颜色, 0=默认/关, 否则ARGB), 默认0
+    public static int nailongNameColor = 0;
     // ★奶龙客户端 大批量新增功能开关 ↑↑↑
     public static int lastPauseTime;
     public static boolean isWaitingForPasscodeEnter;
@@ -560,6 +562,7 @@ public class SharedConfig {
                 editor.putBoolean("nailongCollapseEdits", nailongCollapseEdits);
                 editor.putBoolean("nailongAutoReply", nailongAutoReply);
                 editor.putString("nailongAutoReplyText", nailongAutoReplyText == null ? "" : nailongAutoReplyText);
+                editor.putInt("nailongNameColor", nailongNameColor);
                 editor.putBoolean("saveIncomingPhotos", saveIncomingPhotos);
                 editor.putString("passcodeHash1", passcodeHash);
                 editor.putString("passcodeSalt", passcodeSalt.length > 0 ? Base64.encodeToString(passcodeSalt, Base64.DEFAULT) : "");
@@ -667,6 +670,7 @@ public class SharedConfig {
             nailongCollapseEdits = preferences.getBoolean("nailongCollapseEdits", false);
             nailongAutoReply = preferences.getBoolean("nailongAutoReply", false);
             nailongAutoReplyText = preferences.getString("nailongAutoReplyText", "我现在有事不在，稍后回复你。");
+            nailongNameColor = preferences.getInt("nailongNameColor", 0);
             saveIncomingPhotos = preferences.getBoolean("saveIncomingPhotos", false);
             passcodeHash = preferences.getString("passcodeHash1", "");
             appLocked = preferences.getBoolean("appLocked", false);

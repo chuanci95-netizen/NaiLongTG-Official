@@ -20190,6 +20190,14 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
             }
         }
 
+        // ★奶龙客户端: 半透明显示已删除消息(0.55哨兵值, 回收时复位不误伤动画)
+        if (SharedConfig.nailongDeletedTranslucent && currentMessageObject != null && currentMessageObject.nailongDeleted) {
+            if (alphaInternal == 1.0f) {
+                alphaInternal = 0.55f;
+            }
+        } else if (alphaInternal == 0.55f) {
+            alphaInternal = 1.0f;
+        }
         if (alphaInternal != 1.0f) {
             int top = 0;
             int left = 0;
@@ -22193,10 +22201,20 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
             }
 
             canvas.translate(nx, ny);
+            // ★奶龙客户端: 本地名称颜色 - 覆盖发送者名字颜色
+            int nlNameOldColor = Theme.chat_namePaint.getColor();
+            boolean nlNameColorSet = false;
+            if (SharedConfig.nailongNameColor != 0) {
+                Theme.chat_namePaint.setColor(SharedConfig.nailongNameColor | 0xFF000000);
+                nlNameColorSet = true;
+            }
             oldAlpha = Theme.chat_namePaint.getAlpha();
             Theme.chat_namePaint.setAlpha((int) (oldAlpha * nameAlpha));
             nameLayout.draw(canvas);
             Theme.chat_namePaint.setAlpha(oldAlpha);
+            if (nlNameColorSet) {
+                Theme.chat_namePaint.setColor(nlNameOldColor);
+            }
             canvas.restore();
 
             float end;

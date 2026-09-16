@@ -51,6 +51,9 @@ public class NaiLongSettingsActivity extends BaseFragment {
     // 消息字体大小档位(复用SharedConfig.fontSize)
     private static final String[] FONT_NAMES = {"小", "默认", "大", "超大"};
     private static final int[] FONT_VALUES = {13, 16, 20, 24};
+    // 本地名称颜色档位(0=默认关)
+    private static final String[] COLOR_NAMES = {"默认", "红色", "橙色", "金色", "绿色", "青色", "蓝色", "紫色", "粉色"};
+    private static final int[] COLOR_VALUES = {0, 0xFFE53935, 0xFFFB8C00, 0xFFFFD600, 0xFF43A047, 0xFF00ACC1, 0xFF1E88E5, 0xFF8E24AA, 0xFFEC407A};
 
     // 分类(文件夹)
     private static final int CAT_ROOT = 0;
@@ -94,6 +97,8 @@ public class NaiLongSettingsActivity extends BaseFragment {
     private static final int ID_CLEAR_CACHE = 29;
     private static final int ID_AUTO_REPLY = 30;
     private static final int ID_AUTO_REPLY_TEXT = 31;
+    private static final int ID_DELETED_TRANSLUCENT = 32;
+    private static final int ID_NAME_COLOR = 33;
 
     private final int category;
 
@@ -145,6 +150,7 @@ public class NaiLongSettingsActivity extends BaseFragment {
         } else if (category == CAT_MESSAGE) {
             items.add(new Item(VIEW_TYPE_HEADER, 0, "消息类", null));
             items.add(new Item(VIEW_TYPE_CHECK, ID_SHOW_DELETED, "防撤回", null));
+            items.add(new Item(VIEW_TYPE_CHECK, ID_DELETED_TRANSLUCENT, "已删除消息半透明显示", null));
             items.add(new Item(VIEW_TYPE_CHECK, ID_SHOW_EDITED, "无视编辑", null));
             items.add(new Item(VIEW_TYPE_CHECK, ID_COLLAPSE_EDITS, "折叠编辑历史(只标记不展开)", null));
             items.add(new Item(VIEW_TYPE_SELECT, ID_FONT_SIZE, "消息字体大小", fontName()));
@@ -185,6 +191,7 @@ public class NaiLongSettingsActivity extends BaseFragment {
             items.add(new Item(VIEW_TYPE_HEADER, 0, "个人资料美化", null));
             items.add(new Item(VIEW_TYPE_SELECT, ID_CUSTOM_PHONE, "自定义手机号", TextUtils.isEmpty(cp) ? "未设置" : cp));
             items.add(new Item(VIEW_TYPE_SELECT, ID_CUSTOM_BIO, "自定义简介", TextUtils.isEmpty(cb) ? "未设置" : cb));
+            items.add(new Item(VIEW_TYPE_SELECT, ID_NAME_COLOR, "本地名称颜色", colorName()));
         } else if (category == CAT_TOOLS) {
             items.add(new Item(VIEW_TYPE_HEADER, 0, "工具箱", null));
             items.add(new Item(VIEW_TYPE_SELECT, ID_READ_ALL, "一键已读所有对话", null));
@@ -216,6 +223,7 @@ public class NaiLongSettingsActivity extends BaseFragment {
             case ID_QUICK_SAVE: return SharedConfig.nailongQuickSave;
             case ID_COLLAPSE_EDITS: return SharedConfig.nailongCollapseEdits;
             case ID_AUTO_REPLY: return SharedConfig.nailongAutoReply;
+            case ID_DELETED_TRANSLUCENT: return SharedConfig.nailongDeletedTranslucent;
         }
         return false;
     }
@@ -241,6 +249,7 @@ public class NaiLongSettingsActivity extends BaseFragment {
             case ID_QUICK_SAVE: SharedConfig.nailongQuickSave = !SharedConfig.nailongQuickSave; break;
             case ID_COLLAPSE_EDITS: SharedConfig.nailongCollapseEdits = !SharedConfig.nailongCollapseEdits; break;
             case ID_AUTO_REPLY: SharedConfig.nailongAutoReply = !SharedConfig.nailongAutoReply; break;
+            case ID_DELETED_TRANSLUCENT: SharedConfig.nailongDeletedTranslucent = !SharedConfig.nailongDeletedTranslucent; break;
         }
         SharedConfig.saveConfig();
     }
@@ -307,6 +316,8 @@ public class NaiLongSettingsActivity extends BaseFragment {
                     presentFragment(new CacheControlActivity());
                 } else if (item.id == ID_AUTO_REPLY_TEXT) {
                     showAutoReplyTextDialog();
+                } else if (item.id == ID_NAME_COLOR) {
+                    showNameColorDialog();
                 }
             }
         });
@@ -407,6 +418,32 @@ public class NaiLongSettingsActivity extends BaseFragment {
                 ed.putInt("fons_size", SharedConfig.fontSize).commit();
                 Theme.createCommonMessageResources(); // 立即生效
             } catch (Exception ignore) {}
+            buildItems();
+            if (listView != null && listView.getAdapter() != null) {
+                listView.getAdapter().notifyDataSetChanged();
+            }
+        });
+        b.setNegativeButton("取消", null);
+        showDialog(b.create());
+    }
+
+    private static String colorName() {
+        int v = SharedConfig.nailongNameColor;
+        for (int i = 0; i < COLOR_VALUES.length; i++) {
+            if (COLOR_VALUES[i] == v) return COLOR_NAMES[i];
+        }
+        return "自定义";
+    }
+
+    private void showNameColorDialog() {
+        if (getParentActivity() == null) {
+            return;
+        }
+        AlertDialog.Builder b = new AlertDialog.Builder(getParentActivity());
+        b.setTitle("本地名称颜色");
+        b.setItems(COLOR_NAMES, (dialog, which) -> {
+            SharedConfig.nailongNameColor = COLOR_VALUES[which];
+            SharedConfig.saveConfig();
             buildItems();
             if (listView != null && listView.getAdapter() != null) {
                 listView.getAdapter().notifyDataSetChanged();
