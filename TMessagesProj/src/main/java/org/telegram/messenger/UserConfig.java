@@ -25,7 +25,7 @@ public class UserConfig extends BaseController {
 
     public static int selectedAccount;
     public final static int MAX_ACCOUNT_DEFAULT_COUNT = 3;
-    public final static int MAX_ACCOUNT_COUNT = 8; // ★奶龙客户端: 无限登录账号(原4提到8)
+    public final static int MAX_ACCOUNT_COUNT = 99; // ★奶龙客户端: 无限登录账号(原4提到99, 配合ApplicationLoader空槽跳过重型初始化才不卡启动)
 
     private final Object sync = new Object();
     private volatile boolean configLoaded;

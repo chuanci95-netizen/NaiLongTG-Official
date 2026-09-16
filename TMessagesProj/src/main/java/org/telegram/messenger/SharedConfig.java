@@ -280,6 +280,9 @@ public class SharedConfig {
     public static int nailongStickerSize = 14;
     // 折叠编辑历史(开=只显示"已编辑(N条历史)"不展开列表, 关=展开全部历史), 默认关
     public static boolean nailongCollapseEdits = false;
+    // 自动回复(收到私聊别人消息自动回一条, 每对话每次启动只回一次防刷屏), 默认关 + 回复文本
+    public static boolean nailongAutoReply = false;
+    public static String nailongAutoReplyText = "我现在有事不在，稍后回复你。";
     // ★奶龙客户端 大批量新增功能开关 ↑↑↑
     public static int lastPauseTime;
     public static boolean isWaitingForPasscodeEnter;
@@ -555,6 +558,8 @@ public class SharedConfig {
                 editor.putBoolean("nailongQuickSave", nailongQuickSave);
                 editor.putInt("nailongStickerSize", nailongStickerSize);
                 editor.putBoolean("nailongCollapseEdits", nailongCollapseEdits);
+                editor.putBoolean("nailongAutoReply", nailongAutoReply);
+                editor.putString("nailongAutoReplyText", nailongAutoReplyText == null ? "" : nailongAutoReplyText);
                 editor.putBoolean("saveIncomingPhotos", saveIncomingPhotos);
                 editor.putString("passcodeHash1", passcodeHash);
                 editor.putString("passcodeSalt", passcodeSalt.length > 0 ? Base64.encodeToString(passcodeSalt, Base64.DEFAULT) : "");
@@ -660,6 +665,8 @@ public class SharedConfig {
             nailongQuickSave = preferences.getBoolean("nailongQuickSave", false);
             nailongStickerSize = preferences.getInt("nailongStickerSize", 14);
             nailongCollapseEdits = preferences.getBoolean("nailongCollapseEdits", false);
+            nailongAutoReply = preferences.getBoolean("nailongAutoReply", false);
+            nailongAutoReplyText = preferences.getString("nailongAutoReplyText", "我现在有事不在，稍后回复你。");
             saveIncomingPhotos = preferences.getBoolean("saveIncomingPhotos", false);
             passcodeHash = preferences.getString("passcodeHash1", "");
             appLocked = preferences.getBoolean("appLocked", false);

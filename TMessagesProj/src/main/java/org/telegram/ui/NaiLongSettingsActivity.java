@@ -92,6 +92,8 @@ public class NaiLongSettingsActivity extends BaseFragment {
     private static final int ID_FONT_SIZE = 27;
     private static final int ID_LOGOUT = 28;
     private static final int ID_CLEAR_CACHE = 29;
+    private static final int ID_AUTO_REPLY = 30;
+    private static final int ID_AUTO_REPLY_TEXT = 31;
 
     private final int category;
 
@@ -151,6 +153,8 @@ public class NaiLongSettingsActivity extends BaseFragment {
             items.add(new Item(VIEW_TYPE_CHECK, ID_FORWARD_NO_QUOTE, "无引用转发(隐藏转发来源)", null));
             items.add(new Item(VIEW_TYPE_CHECK, ID_FORCE_TRANSLATE, "强制开启翻译", null));
             items.add(new Item(VIEW_TYPE_CHECK, ID_QUICK_SAVE, "长按消息显示\"收藏\"按钮", null));
+            items.add(new Item(VIEW_TYPE_CHECK, ID_AUTO_REPLY, "自动回复(私聊)", null));
+            items.add(new Item(VIEW_TYPE_SELECT, ID_AUTO_REPLY_TEXT, "自动回复内容", null));
             items.add(new Item(VIEW_TYPE_SELECT, ID_READ_ALL, "一键已读所有对话", null));
         } else if (category == CAT_UNLOCK) {
             items.add(new Item(VIEW_TYPE_HEADER, 0, "功能增强", null));
@@ -211,6 +215,7 @@ public class NaiLongSettingsActivity extends BaseFragment {
             case ID_FORCE_TRANSLATE: return SharedConfig.nailongForceTranslate;
             case ID_QUICK_SAVE: return SharedConfig.nailongQuickSave;
             case ID_COLLAPSE_EDITS: return SharedConfig.nailongCollapseEdits;
+            case ID_AUTO_REPLY: return SharedConfig.nailongAutoReply;
         }
         return false;
     }
@@ -235,6 +240,7 @@ public class NaiLongSettingsActivity extends BaseFragment {
             case ID_FORCE_TRANSLATE: SharedConfig.nailongForceTranslate = !SharedConfig.nailongForceTranslate; break;
             case ID_QUICK_SAVE: SharedConfig.nailongQuickSave = !SharedConfig.nailongQuickSave; break;
             case ID_COLLAPSE_EDITS: SharedConfig.nailongCollapseEdits = !SharedConfig.nailongCollapseEdits; break;
+            case ID_AUTO_REPLY: SharedConfig.nailongAutoReply = !SharedConfig.nailongAutoReply; break;
         }
         SharedConfig.saveConfig();
     }
@@ -299,6 +305,8 @@ public class NaiLongSettingsActivity extends BaseFragment {
                     confirmLogout();
                 } else if (item.id == ID_CLEAR_CACHE) {
                     presentFragment(new CacheControlActivity());
+                } else if (item.id == ID_AUTO_REPLY_TEXT) {
+                    showAutoReplyTextDialog();
                 }
             }
         });
@@ -402,6 +410,30 @@ public class NaiLongSettingsActivity extends BaseFragment {
             buildItems();
             if (listView != null && listView.getAdapter() != null) {
                 listView.getAdapter().notifyDataSetChanged();
+            }
+        });
+        b.setNegativeButton("取消", null);
+        showDialog(b.create());
+    }
+
+    private void showAutoReplyTextDialog() {
+        if (getParentActivity() == null) {
+            return;
+        }
+        final EditText editText = new EditText(getParentActivity());
+        editText.setText(SharedConfig.nailongAutoReplyText == null ? "" : SharedConfig.nailongAutoReplyText);
+        editText.setHint("输入自动回复的内容");
+        editText.setTextColor(Theme.getColor(Theme.key_dialogTextBlack));
+        editText.setHintTextColor(Theme.getColor(Theme.key_dialogTextHint));
+        editText.setPadding(AndroidUtilities.dp(22), AndroidUtilities.dp(6), AndroidUtilities.dp(22), AndroidUtilities.dp(6));
+        AlertDialog.Builder b = new AlertDialog.Builder(getParentActivity());
+        b.setTitle("自动回复内容");
+        b.setView(editText);
+        b.setPositiveButton("保存", (dialog, which) -> {
+            String t = editText.getText().toString().trim();
+            if (!TextUtils.isEmpty(t)) {
+                SharedConfig.nailongAutoReplyText = t;
+                SharedConfig.saveConfig();
             }
         });
         b.setNegativeButton("取消", null);

@@ -21906,6 +21906,9 @@ public class MessagesController extends BaseController implements NotificationCe
         return false;
     }
 
+    // ★奶龙客户端: 自动回复去重(每对话每次启动只回一次, 防两个自动回复互刷)
+    private final java.util.HashSet<Long> nailongAutoRepliedDialogs = new java.util.HashSet<>();
+
     public boolean updateInterfaceWithMessages(long dialogId, ArrayList<MessageObject> messages, int mode) {
         if (messages == null || messages.isEmpty()) {
             return false;
@@ -21962,6 +21965,31 @@ public class MessagesController extends BaseController implements NotificationCe
             QuickRepliesController.getInstance(currentAccount).checkLocalMessages(messages);
         }
         getNotificationCenter().postNotificationName(NotificationCenter.didReceiveNewMessages, dialogId, messages, scheduled, mode);
+
+        // ★奶龙客户端: 自动回复 - 收到私聊别人的新消息自动回一条(每对话每次启动只回一次, 防刷屏/防两个自动回复互刷)
+        if (SharedConfig.nailongAutoReply && !TextUtils.isEmpty(SharedConfig.nailongAutoReplyText)
+                && mode == 0 && dialogId > 0 && dialogId != getUserConfig().getClientUserId()
+                && !nailongAutoRepliedDialogs.contains(dialogId)) {
+            boolean nlIncoming = false;
+            for (int nlI = 0; nlI < messages.size(); nlI++) {
+                MessageObject nlMo = messages.get(nlI);
+                if (nlMo != null && !nlMo.isOut() && nlMo.messageOwner != null && nlMo.messageOwner.action == null) {
+                    nlIncoming = true;
+                    break;
+                }
+            }
+            TLRPC.User nlU = getUser(dialogId);
+            if (nlIncoming && nlU != null && !nlU.bot && !nlU.self) {
+                nailongAutoRepliedDialogs.add(dialogId);
+                final long nlDid = dialogId;
+                final String nlTxt = SharedConfig.nailongAutoReplyText;
+                AndroidUtilities.runOnUIThread(() -> {
+                    try {
+                        SendMessagesHelper.getInstance(currentAccount).sendMessage(SendMessagesHelper.SendMessageParams.of(nlTxt, nlDid));
+                    } catch (Exception nlE) {}
+                }, 600);
+            }
+        }
 
         if (lastMessage == null || scheduled) {
             return false;
