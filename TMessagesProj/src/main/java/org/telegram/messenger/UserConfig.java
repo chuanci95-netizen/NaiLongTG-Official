@@ -25,7 +25,7 @@ public class UserConfig extends BaseController {
 
     public static int selectedAccount;
     public final static int MAX_ACCOUNT_DEFAULT_COUNT = 3;
-    public final static int MAX_ACCOUNT_COUNT = 99; // ★奶龙客户端: 无限登录账号(原4提到99, 配合ApplicationLoader空槽跳过重型初始化才不卡启动)
+    public final static int MAX_ACCOUNT_COUNT = 5; // ★奶龙客户端: 账号上限提到5(与native tgnet设计上限对齐, 原4→5; 再高需重构整个native账号系统会崩)
 
     private final Object sync = new Object();
     private volatile boolean configLoaded;
@@ -122,7 +122,7 @@ public class UserConfig extends BaseController {
     }
 
     public static int getMaxAccountCount() {
-        return MAX_ACCOUNT_COUNT; // ★奶龙客户端: 无限登录账号 - 放开到最大槽位
+        return MAX_ACCOUNT_COUNT; // ★奶龙客户端: 放开到最大槽位(5)
     }
 
     public int getNewMessageId() {

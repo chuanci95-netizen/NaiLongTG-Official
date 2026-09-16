@@ -213,10 +213,6 @@ public class ApplicationLoader extends Application {
 
                     boolean isSlow = isConnectionSlow();
                     for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
-                        // ★奶龙客户端: 无限登录账号 - 网络变化只通知已登录账号, 不给空槽建原生连接
-                        if (a != 0 && !UserConfig.getInstance(a).isClientActivated()) {
-                            continue;
-                        }
                         ConnectionsManager.getInstance(a).checkConnection();
                         FileLoader.getInstance(a).onNetworkChanged(isSlow);
                     }
@@ -251,10 +247,6 @@ public class ApplicationLoader extends Application {
         SharedPrefsHelper.init(applicationContext);
         for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) { //TODO improve account
             UserConfig.getInstance(a).loadConfig();
-            // ★奶龙客户端: 无限登录账号 - 空槽位不建重型控制器(MessagesController/原生ConnectionsManager), 支持高上限不卡启动; 用到时惰性创建
-            if (a != 0 && !UserConfig.getInstance(a).isClientActivated()) {
-                continue;
-            }
             MessagesController.getInstance(a);
             if (a == 0) {
                 SharedConfig.pushStringStatus = "__FIREBASE_GENERATING_SINCE_" + ConnectionsManager.getInstance(a).getCurrentTime() + "__";
@@ -276,10 +268,6 @@ public class ApplicationLoader extends Application {
 
         MediaController.getInstance();
         for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) { //TODO improve account
-            // ★奶龙客户端: 无限登录账号 - 空槽位跳过, 只给已登录账号建联系人/下载控制器
-            if (a != 0 && !UserConfig.getInstance(a).isClientActivated()) {
-                continue;
-            }
             ContactsController.getInstance(a).checkAppAccount();
             DownloadController.getInstance(a);
         }
