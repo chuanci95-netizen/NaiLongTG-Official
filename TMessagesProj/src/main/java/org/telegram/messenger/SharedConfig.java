@@ -278,6 +278,8 @@ public class SharedConfig {
     public static boolean nailongQuickSave = false;
     // 表情包/贴纸大小(14=原始, 越大越大, 范围约8-20), 默认14
     public static int nailongStickerSize = 14;
+    // 折叠编辑历史(开=只显示"已编辑(N条历史)"不展开列表, 关=展开全部历史), 默认关
+    public static boolean nailongCollapseEdits = false;
     // ★奶龙客户端 大批量新增功能开关 ↑↑↑
     public static int lastPauseTime;
     public static boolean isWaitingForPasscodeEnter;
@@ -477,6 +479,21 @@ public class SharedConfig {
     public static ProxyInfo currentProxy;
 
     // ★奶龙客户端: 无视编辑历史持久化(重开聊天/重启后仍能看到历次编辑前原文). key=dialogId_msgId, value=各版本用\u0001分隔(旧→新)
+    // ★奶龙客户端: 防撤回删除标记持久化(重开/重启后已删除的消息仍标"已删除"). key=dialogId_msgId
+    public static void nailongAddDeleted(long dialogId, int msgId) {
+        try {
+            SharedPreferences p = ApplicationLoader.applicationContext.getSharedPreferences("nailong_deleted", Context.MODE_PRIVATE);
+            p.edit().putBoolean(dialogId + "_" + msgId, true).apply();
+        } catch (Exception ignore) {}
+    }
+    public static boolean nailongIsDeleted(long dialogId, int msgId) {
+        try {
+            SharedPreferences p = ApplicationLoader.applicationContext.getSharedPreferences("nailong_deleted", Context.MODE_PRIVATE);
+            return p.getBoolean(dialogId + "_" + msgId, false);
+        } catch (Exception ignore) {}
+        return false;
+    }
+
     public static void nailongAddEdit(long dialogId, int msgId, CharSequence original) {
         if (original == null) return;
         try {
@@ -537,6 +554,7 @@ public class SharedConfig {
                 editor.putString("nailongCustomBio", nailongCustomBio == null ? "" : nailongCustomBio);
                 editor.putBoolean("nailongQuickSave", nailongQuickSave);
                 editor.putInt("nailongStickerSize", nailongStickerSize);
+                editor.putBoolean("nailongCollapseEdits", nailongCollapseEdits);
                 editor.putBoolean("saveIncomingPhotos", saveIncomingPhotos);
                 editor.putString("passcodeHash1", passcodeHash);
                 editor.putString("passcodeSalt", passcodeSalt.length > 0 ? Base64.encodeToString(passcodeSalt, Base64.DEFAULT) : "");
@@ -641,6 +659,7 @@ public class SharedConfig {
             nailongCustomBio = preferences.getString("nailongCustomBio", "");
             nailongQuickSave = preferences.getBoolean("nailongQuickSave", false);
             nailongStickerSize = preferences.getInt("nailongStickerSize", 14);
+            nailongCollapseEdits = preferences.getBoolean("nailongCollapseEdits", false);
             saveIncomingPhotos = preferences.getBoolean("saveIncomingPhotos", false);
             passcodeHash = preferences.getString("passcodeHash1", "");
             appLocked = preferences.getBoolean("appLocked", false);

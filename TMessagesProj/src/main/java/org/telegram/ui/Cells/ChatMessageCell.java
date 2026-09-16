@@ -18517,9 +18517,9 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                 currentTimeString = TextUtils.concat(formatString(R.string.MessageScheduledRepeatSeconds, period), ", ", currentTimeString);
             }
         }
-        // ★奶龙客户端: 防撤回 - 被撤回消息右下角标"已删除"
+        // ★奶龙客户端: 防撤回 - 被撤回消息右下角标"已删除"(跟"已编辑"一样的纯文字)
         if (currentMessageObject.nailongDeleted && currentTimeString != null) {
-            currentTimeString = TextUtils.concat("🗑 已删除 ", currentTimeString);
+            currentTimeString = TextUtils.concat("已删除 ", currentTimeString);
         }
         timeTextWidth = timeWidth = (int) Math.ceil(Theme.chat_timePaint.measureText(currentTimeString, 0, currentTimeString == null ? 0 : currentTimeString.length()));
         if (currentMessageObject.scheduled && currentMessageObject.messageOwner.date == 0x7FFFFFFE || currentMessageObject.notime) {

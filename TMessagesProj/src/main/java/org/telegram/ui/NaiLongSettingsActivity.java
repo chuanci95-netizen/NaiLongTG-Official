@@ -48,6 +48,9 @@ public class NaiLongSettingsActivity extends BaseFragment {
     // 表情包大小档位: 名字 + 对应值(SharedConfig.nailongStickerSize)
     private static final String[] STK_NAMES = {"小", "默认", "大", "超大"};
     private static final int[] STK_VALUES = {10, 14, 17, 20};
+    // 消息字体大小档位(复用SharedConfig.fontSize)
+    private static final String[] FONT_NAMES = {"小", "默认", "大", "超大"};
+    private static final int[] FONT_VALUES = {13, 16, 20, 24};
 
     // 分类(文件夹)
     private static final int CAT_ROOT = 0;
@@ -85,6 +88,10 @@ public class NaiLongSettingsActivity extends BaseFragment {
     private static final int ID_MUTE_ALL = 23;
     private static final int ID_DEVICE_INFO = 24;
     private static final int ID_STICKER_SIZE = 25;
+    private static final int ID_COLLAPSE_EDITS = 26;
+    private static final int ID_FONT_SIZE = 27;
+    private static final int ID_LOGOUT = 28;
+    private static final int ID_CLEAR_CACHE = 29;
 
     private final int category;
 
@@ -137,6 +144,8 @@ public class NaiLongSettingsActivity extends BaseFragment {
             items.add(new Item(VIEW_TYPE_HEADER, 0, "消息类", null));
             items.add(new Item(VIEW_TYPE_CHECK, ID_SHOW_DELETED, "防撤回", null));
             items.add(new Item(VIEW_TYPE_CHECK, ID_SHOW_EDITED, "无视编辑", null));
+            items.add(new Item(VIEW_TYPE_CHECK, ID_COLLAPSE_EDITS, "折叠编辑历史(只标记不展开)", null));
+            items.add(new Item(VIEW_TYPE_SELECT, ID_FONT_SIZE, "消息字体大小", fontName()));
             items.add(new Item(VIEW_TYPE_CHECK, ID_SECONDS_TS, "精确到秒时间戳", null));
             items.add(new Item(VIEW_TYPE_CHECK, ID_NO_PULL_NEXT, "禁止下滑跳转下一个频道", null));
             items.add(new Item(VIEW_TYPE_CHECK, ID_FORWARD_NO_QUOTE, "无引用转发(隐藏转发来源)", null));
@@ -177,6 +186,8 @@ public class NaiLongSettingsActivity extends BaseFragment {
             items.add(new Item(VIEW_TYPE_SELECT, ID_READ_ALL, "一键已读所有对话", null));
             items.add(new Item(VIEW_TYPE_SELECT, ID_MUTE_ALL, "一键静音所有对话", null));
             items.add(new Item(VIEW_TYPE_SELECT, ID_DEVICE_INFO, "查看设备信息", null));
+            items.add(new Item(VIEW_TYPE_SELECT, ID_CLEAR_CACHE, "清理缓存", null));
+            items.add(new Item(VIEW_TYPE_SELECT, ID_LOGOUT, "一键注销当前账户", null));
         }
     }
 
@@ -199,6 +210,7 @@ public class NaiLongSettingsActivity extends BaseFragment {
             case ID_MEDIA_BEST: return SharedConfig.nailongMediaBestQuality;
             case ID_FORCE_TRANSLATE: return SharedConfig.nailongForceTranslate;
             case ID_QUICK_SAVE: return SharedConfig.nailongQuickSave;
+            case ID_COLLAPSE_EDITS: return SharedConfig.nailongCollapseEdits;
         }
         return false;
     }
@@ -222,6 +234,7 @@ public class NaiLongSettingsActivity extends BaseFragment {
             case ID_MEDIA_BEST: SharedConfig.nailongMediaBestQuality = !SharedConfig.nailongMediaBestQuality; break;
             case ID_FORCE_TRANSLATE: SharedConfig.nailongForceTranslate = !SharedConfig.nailongForceTranslate; break;
             case ID_QUICK_SAVE: SharedConfig.nailongQuickSave = !SharedConfig.nailongQuickSave; break;
+            case ID_COLLAPSE_EDITS: SharedConfig.nailongCollapseEdits = !SharedConfig.nailongCollapseEdits; break;
         }
         SharedConfig.saveConfig();
     }
@@ -280,6 +293,12 @@ public class NaiLongSettingsActivity extends BaseFragment {
                     showDeviceInfoDialog();
                 } else if (item.id == ID_STICKER_SIZE) {
                     showStickerSizeDialog();
+                } else if (item.id == ID_FONT_SIZE) {
+                    showFontSizeDialog();
+                } else if (item.id == ID_LOGOUT) {
+                    confirmLogout();
+                } else if (item.id == ID_CLEAR_CACHE) {
+                    presentFragment(new CacheControlActivity());
                 }
             }
         });
@@ -356,6 +375,55 @@ public class NaiLongSettingsActivity extends BaseFragment {
             if (STK_VALUES[i] == v) return STK_NAMES[i];
         }
         return String.valueOf(v);
+    }
+
+    private static String fontName() {
+        int v = SharedConfig.fontSize;
+        for (int i = 0; i < FONT_VALUES.length; i++) {
+            if (FONT_VALUES[i] == v) return FONT_NAMES[i];
+        }
+        return String.valueOf(v);
+    }
+
+    private void showFontSizeDialog() {
+        if (getParentActivity() == null) {
+            return;
+        }
+        AlertDialog.Builder b = new AlertDialog.Builder(getParentActivity());
+        b.setTitle("消息字体大小");
+        b.setItems(FONT_NAMES, (dialog, which) -> {
+            SharedConfig.fontSize = FONT_VALUES[which];
+            SharedConfig.fontSizeIsDefault = false;
+            try {
+                android.content.SharedPreferences.Editor ed = org.telegram.messenger.ApplicationLoader.applicationContext.getSharedPreferences("mainconfig", Context.MODE_PRIVATE).edit();
+                ed.putInt("fons_size", SharedConfig.fontSize).commit();
+                Theme.createCommonMessageResources(); // 立即生效
+            } catch (Exception ignore) {}
+            buildItems();
+            if (listView != null && listView.getAdapter() != null) {
+                listView.getAdapter().notifyDataSetChanged();
+            }
+        });
+        b.setNegativeButton("取消", null);
+        showDialog(b.create());
+    }
+
+    private void confirmLogout() {
+        if (getParentActivity() == null) {
+            return;
+        }
+        AlertDialog.Builder b = new AlertDialog.Builder(getParentActivity());
+        b.setTitle("注销当前账户");
+        b.setMessage("确定要退出登录当前账户吗？退出后需要重新登录。");
+        b.setPositiveButton("确定退出", (dialog, which) -> {
+            try {
+                getMessagesController().performLogout(1);
+            } catch (Exception e) {
+                org.telegram.messenger.FileLog.e(e);
+            }
+        });
+        b.setNegativeButton("取消", null);
+        showDialog(b.create());
     }
 
     private void showStickerSizeDialog() {

@@ -19507,6 +19507,18 @@ public class MessagesController extends BaseController implements NotificationCe
 
                 MessageObject.getDialogId(message);
 
+                // ★奶龙客户端: 无视编辑(数据库层抓旧原文) - 编辑更新到达时数据库里那条还是旧文字, 此刻读出存起来。
+                // 不管对话开没开着都能抓(只要App在线收到这条编辑更新), 修复"没看着现编就丢历史"。
+                if (SharedConfig.nailongShowEdited && message.edit_date != 0 && !TextUtils.isEmpty(message.message)) {
+                    try {
+                        long nlDid = MessageObject.getDialogId(message);
+                        TLRPC.Message nlOld = getMessagesStorage().getMessage(nlDid, message.id);
+                        if (nlOld != null && !TextUtils.isEmpty(nlOld.message) && !nlOld.message.equals(message.message)) {
+                            SharedConfig.nailongAddEdit(nlDid, message.id, nlOld.message);
+                        }
+                    } catch (Exception nlIgnore) {}
+                }
+
                 ConcurrentHashMap<Long, Integer> read_max = message.out ? dialogs_read_outbox_max : dialogs_read_inbox_max;
                 Integer value = read_max.get(message.dialog_id);
                 if (value == null) {

@@ -20999,6 +20999,9 @@ public class ChatActivity extends BaseFragment implements
         for (int a = 0; a < messArr.size(); a++) {
             MessageObject obj = messArr.get(a);
             applyNailongEdits(obj); // ★奶龙客户端: 无视编辑 - 加载时贴回持久化的编辑历史(退出重进/重启后仍显示)
+            if (SharedConfig.nailongShowDeleted && !obj.nailongDeleted && SharedConfig.nailongIsDeleted(dialog_id, obj.getId())) {
+                obj.nailongDeleted = true; // ★奶龙客户端: 防撤回 - 加载时贴回删除标记(重开/重启仍标"已删除")
+            }
             if (obj.replyMessageObject != null) {
                 repliesMessagesDict.put(obj.replyMessageObject.getId(), obj.replyMessageObject);
                 addReplyMessageOwner(obj, 0);
@@ -22305,7 +22308,14 @@ public class ChatActivity extends BaseFragment implements
             boolean nailongKept = false;
             if (SharedConfig.nailongShowDeleted && !scheduled && !movedToScheduled && chatMode != MODE_SCHEDULED && !messages.isEmpty()) {
                 for (MessageObject m : messages) {
-                    if (m != null && !m.nailongDeleted) { m.nailongDeleted = true; nailongKept = true; }
+                    if (m != null && !m.nailongDeleted) {
+                        m.nailongDeleted = true;
+                        SharedConfig.nailongAddDeleted(dialog_id, m.getId()); // ★奶龙客户端: 持久化删除标记(重开/重启仍标"已删除")
+                        nailongKept = true;
+                        if (chatAdapter != null) {
+                            chatAdapter.updateRowWithMessageObject(m, false, false); // 强制重建该行, 重算时间串带上"已删除"
+                        }
+                    }
                 }
                 if (nailongKept) {
                     updateVisibleRows();
@@ -26653,11 +26663,17 @@ public class ChatActivity extends BaseFragment implements
         if (mo.nailongBaseText == null) {
             mo.nailongBaseText = mo.messageText;
         }
-        CharSequence disp = TextUtils.concat(mo.nailongBaseText, "\n\n✏️ 编辑历史(" + hist.size() + "条):");
-        int n = 1;
-        for (int i = hist.size() - 1; i >= 0; i--) {
-            disp = TextUtils.concat(disp, "\n" + n + ". ", hist.get(i));
-            n++;
+        CharSequence disp;
+        if (SharedConfig.nailongCollapseEdits) {
+            // ★奶龙客户端: 折叠编辑历史 - 只标记不展开
+            disp = TextUtils.concat(mo.nailongBaseText, "  ✏️已编辑(" + hist.size() + "条历史)");
+        } else {
+            disp = TextUtils.concat(mo.nailongBaseText, "\n\n✏️ 编辑历史(" + hist.size() + "条):");
+            int n = 1;
+            for (int i = hist.size() - 1; i >= 0; i--) {
+                disp = TextUtils.concat(disp, "\n" + n + ". ", hist.get(i));
+                n++;
+            }
         }
         mo.messageText = disp;
         mo.nailongEditApplied = true;
