@@ -20733,6 +20733,10 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
             if (fromParent) {
                 alphaInternal *= getAlpha();
             }
+            // ★奶龙客户端: 气泡透明度 - 只让气泡背景透明, 文字不受影响
+            if (SharedConfig.nailongBubbleAlpha < 100) {
+                alphaInternal *= SharedConfig.nailongBubbleAlpha / 100f;
+            }
             if (hasSelectionOverlay()) {
 //                if ((isPressed() && isCheckPressed || !isCheckPressed && isPressed) && !textIsSelectionMode()) {
 //                    currentSelectedBackgroundAlpha = 1f;

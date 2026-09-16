@@ -54,6 +54,9 @@ public class NaiLongSettingsActivity extends BaseFragment {
     // 本地名称颜色档位(0=默认关)
     private static final String[] COLOR_NAMES = {"默认", "红色", "橙色", "金色", "绿色", "青色", "蓝色", "紫色", "粉色"};
     private static final int[] COLOR_VALUES = {0, 0xFFE53935, 0xFFFB8C00, 0xFFFFD600, 0xFF43A047, 0xFF00ACC1, 0xFF1E88E5, 0xFF8E24AA, 0xFFEC407A};
+    // 气泡透明度档位(不透明度%)
+    private static final String[] BUBBLE_NAMES = {"不透明", "80%", "60%", "40%", "20%"};
+    private static final int[] BUBBLE_VALUES = {100, 80, 60, 40, 20};
 
     // 分类(文件夹)
     private static final int CAT_ROOT = 0;
@@ -99,6 +102,11 @@ public class NaiLongSettingsActivity extends BaseFragment {
     private static final int ID_AUTO_REPLY_TEXT = 31;
     private static final int ID_DELETED_TRANSLUCENT = 32;
     private static final int ID_NAME_COLOR = 33;
+    private static final int ID_TRANSPARENT_UI = 34;
+    private static final int ID_CLEAR_FROZEN = 35;
+    private static final int ID_BUBBLE_ALPHA = 36;
+    private static final int ID_CUSTOM_STARS = 37;
+    private static final int ID_CUSTOM_ID = 38;
 
     private final int category;
 
@@ -168,6 +176,8 @@ public class NaiLongSettingsActivity extends BaseFragment {
             items.add(new Item(VIEW_TYPE_CHECK, ID_NO_SPONSORED, "去除频道广告", null));
             items.add(new Item(VIEW_TYPE_CHECK, ID_FAKE_PREMIUM, "本地会员(解锁会员功能)", null));
             items.add(new Item(VIEW_TYPE_CHECK, ID_TABLET_MODE, "平板比例(重启生效)", null));
+            items.add(new Item(VIEW_TYPE_CHECK, ID_TRANSPARENT_UI, "界面按钮透明背景", null));
+            items.add(new Item(VIEW_TYPE_SELECT, ID_BUBBLE_ALPHA, "聊天气泡透明度", bubbleName()));
         } else if (category == CAT_DOWNLOAD) {
             int lv = SharedConfig.nailongDownloadSpeed;
             if (lv < 0 || lv >= DL_NAMES.length) lv = 0;
@@ -198,6 +208,7 @@ public class NaiLongSettingsActivity extends BaseFragment {
             items.add(new Item(VIEW_TYPE_SELECT, ID_MUTE_ALL, "一键静音所有对话", null));
             items.add(new Item(VIEW_TYPE_SELECT, ID_DEVICE_INFO, "查看设备信息", null));
             items.add(new Item(VIEW_TYPE_SELECT, ID_CLEAR_CACHE, "清理缓存", null));
+            items.add(new Item(VIEW_TYPE_SELECT, ID_CLEAR_FROZEN, "清空已注销用户的聊天", null));
             items.add(new Item(VIEW_TYPE_SELECT, ID_LOGOUT, "一键注销当前账户", null));
         }
     }
@@ -224,6 +235,7 @@ public class NaiLongSettingsActivity extends BaseFragment {
             case ID_COLLAPSE_EDITS: return SharedConfig.nailongCollapseEdits;
             case ID_AUTO_REPLY: return SharedConfig.nailongAutoReply;
             case ID_DELETED_TRANSLUCENT: return SharedConfig.nailongDeletedTranslucent;
+            case ID_TRANSPARENT_UI: return SharedConfig.nailongTransparentUI;
         }
         return false;
     }
@@ -250,6 +262,7 @@ public class NaiLongSettingsActivity extends BaseFragment {
             case ID_COLLAPSE_EDITS: SharedConfig.nailongCollapseEdits = !SharedConfig.nailongCollapseEdits; break;
             case ID_AUTO_REPLY: SharedConfig.nailongAutoReply = !SharedConfig.nailongAutoReply; break;
             case ID_DELETED_TRANSLUCENT: SharedConfig.nailongDeletedTranslucent = !SharedConfig.nailongDeletedTranslucent; break;
+            case ID_TRANSPARENT_UI: SharedConfig.nailongTransparentUI = !SharedConfig.nailongTransparentUI; break;
         }
         SharedConfig.saveConfig();
     }
@@ -318,6 +331,10 @@ public class NaiLongSettingsActivity extends BaseFragment {
                     showAutoReplyTextDialog();
                 } else if (item.id == ID_NAME_COLOR) {
                     showNameColorDialog();
+                } else if (item.id == ID_BUBBLE_ALPHA) {
+                    showBubbleAlphaDialog();
+                } else if (item.id == ID_CLEAR_FROZEN) {
+                    confirmClearFrozen();
                 }
             }
         });
@@ -433,6 +450,32 @@ public class NaiLongSettingsActivity extends BaseFragment {
             if (COLOR_VALUES[i] == v) return COLOR_NAMES[i];
         }
         return "自定义";
+    }
+
+    private static String bubbleName() {
+        int v = SharedConfig.nailongBubbleAlpha;
+        for (int i = 0; i < BUBBLE_VALUES.length; i++) {
+            if (BUBBLE_VALUES[i] == v) return BUBBLE_NAMES[i];
+        }
+        return v + "%";
+    }
+
+    private void showBubbleAlphaDialog() {
+        if (getParentActivity() == null) {
+            return;
+        }
+        AlertDialog.Builder b = new AlertDialog.Builder(getParentActivity());
+        b.setTitle("聊天气泡透明度");
+        b.setItems(BUBBLE_NAMES, (dialog, which) -> {
+            SharedConfig.nailongBubbleAlpha = BUBBLE_VALUES[which];
+            SharedConfig.saveConfig();
+            buildItems();
+            if (listView != null && listView.getAdapter() != null) {
+                listView.getAdapter().notifyDataSetChanged();
+            }
+        });
+        b.setNegativeButton("取消", null);
+        showDialog(b.create());
     }
 
     private void showNameColorDialog() {
@@ -578,6 +621,41 @@ public class NaiLongSettingsActivity extends BaseFragment {
         }
     }
 
+    private void confirmClearFrozen() {
+        if (getParentActivity() == null) {
+            return;
+        }
+        AlertDialog.Builder b = new AlertDialog.Builder(getParentActivity());
+        b.setTitle("清空已注销用户的聊天");
+        b.setMessage("将删除所有对方账号已注销/冻结(显示'已注销的账户')的私聊。此操作不可恢复，确定吗？");
+        b.setPositiveButton("确定删除", (dialog, which) -> clearFrozenChats());
+        b.setNegativeButton("取消", null);
+        showDialog(b.create());
+    }
+
+    private void clearFrozenChats() {
+        try {
+            java.util.ArrayList<TLRPC.Dialog> dialogs = new java.util.ArrayList<>(getMessagesController().getAllDialogs());
+            int n = 0;
+            for (int i = 0; i < dialogs.size(); i++) {
+                TLRPC.Dialog d = dialogs.get(i);
+                if (d == null || d.id == 0 || d.id <= 0 || d instanceof TLRPC.TL_dialogFolder) {
+                    continue; // 只处理私聊(id>0)
+                }
+                TLRPC.User u = getMessagesController().getUser(d.id);
+                if (u != null && org.telegram.messenger.UserObject.isDeleted(u)) {
+                    getMessagesController().deleteDialog(d.id, 0);
+                    n++;
+                }
+            }
+            if (getParentActivity() != null) {
+                Toast.makeText(getParentActivity(), "已清空 " + n + " 个已注销用户的聊天", Toast.LENGTH_SHORT).show();
+            }
+        } catch (Exception e) {
+            org.telegram.messenger.FileLog.e(e);
+        }
+    }
+
     private void showDeviceInfoDialog() {
         if (getParentActivity() == null) {
             return;
@@ -623,13 +701,13 @@ public class NaiLongSettingsActivity extends BaseFragment {
             View view;
             if (viewType == VIEW_TYPE_HEADER) {
                 view = new HeaderCell(getContext());
-                view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
+                view.setBackgroundColor(SharedConfig.nailongTransparentUI ? 0 : Theme.getColor(Theme.key_windowBackgroundWhite)); // ★奶龙客户端: 按钮透明背景
             } else if (viewType == VIEW_TYPE_CHECK) {
                 view = new TextCheckCell(getContext());
-                view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
+                view.setBackgroundColor(SharedConfig.nailongTransparentUI ? 0 : Theme.getColor(Theme.key_windowBackgroundWhite)); // ★奶龙客户端: 按钮透明背景
             } else if (viewType == VIEW_TYPE_FOLDER || viewType == VIEW_TYPE_SELECT) {
                 view = new TextSettingsCell(getContext());
-                view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
+                view.setBackgroundColor(SharedConfig.nailongTransparentUI ? 0 : Theme.getColor(Theme.key_windowBackgroundWhite)); // ★奶龙客户端: 按钮透明背景
             } else {
                 view = new TextInfoPrivacyCell(getContext());
             }

@@ -285,6 +285,18 @@ public class SharedConfig {
     public static String nailongAutoReplyText = "我现在有事不在，稍后回复你。";
     // 本地名称颜色(聊天里发送者名字颜色, 0=默认/关, 否则ARGB), 默认0
     public static int nailongNameColor = 0;
+    // ★奶龙客户端 用户圈定批次 ↓↓↓
+    // 界面按钮/卡片透明背景(高级设置等), 默认关
+    public static boolean nailongTransparentUI = false;
+    // 置顶对话颜色加深, 默认关
+    public static boolean nailongDeepenPinned = false;
+    // 聊天气泡不透明度(100=不透明, 越小越透明, 范围30-100), 默认100
+    public static int nailongBubbleAlpha = 100;
+    // 自定义星星数量显示(仅本机界面, 空=真实), 默认空
+    public static String nailongCustomStars = "";
+    // 自定义个人资料ID显示(仅本机界面, 空=真实), 默认空
+    public static String nailongCustomId = "";
+    // ★奶龙客户端 用户圈定批次 ↑↑↑
     // ★奶龙客户端 大批量新增功能开关 ↑↑↑
     public static int lastPauseTime;
     public static boolean isWaitingForPasscodeEnter;
@@ -563,6 +575,11 @@ public class SharedConfig {
                 editor.putBoolean("nailongAutoReply", nailongAutoReply);
                 editor.putString("nailongAutoReplyText", nailongAutoReplyText == null ? "" : nailongAutoReplyText);
                 editor.putInt("nailongNameColor", nailongNameColor);
+                editor.putBoolean("nailongTransparentUI", nailongTransparentUI);
+                editor.putBoolean("nailongDeepenPinned", nailongDeepenPinned);
+                editor.putInt("nailongBubbleAlpha", nailongBubbleAlpha);
+                editor.putString("nailongCustomStars", nailongCustomStars == null ? "" : nailongCustomStars);
+                editor.putString("nailongCustomId", nailongCustomId == null ? "" : nailongCustomId);
                 editor.putBoolean("saveIncomingPhotos", saveIncomingPhotos);
                 editor.putString("passcodeHash1", passcodeHash);
                 editor.putString("passcodeSalt", passcodeSalt.length > 0 ? Base64.encodeToString(passcodeSalt, Base64.DEFAULT) : "");
@@ -671,6 +688,11 @@ public class SharedConfig {
             nailongAutoReply = preferences.getBoolean("nailongAutoReply", false);
             nailongAutoReplyText = preferences.getString("nailongAutoReplyText", "我现在有事不在，稍后回复你。");
             nailongNameColor = preferences.getInt("nailongNameColor", 0);
+            nailongTransparentUI = preferences.getBoolean("nailongTransparentUI", false);
+            nailongDeepenPinned = preferences.getBoolean("nailongDeepenPinned", false);
+            nailongBubbleAlpha = preferences.getInt("nailongBubbleAlpha", 100);
+            nailongCustomStars = preferences.getString("nailongCustomStars", "");
+            nailongCustomId = preferences.getString("nailongCustomId", "");
             saveIncomingPhotos = preferences.getBoolean("saveIncomingPhotos", false);
             passcodeHash = preferences.getString("passcodeHash1", "");
             appLocked = preferences.getBoolean("appLocked", false);
