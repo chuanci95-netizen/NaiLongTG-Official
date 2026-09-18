@@ -107,6 +107,7 @@ public class NaiLongSettingsActivity extends BaseFragment {
     private static final int ID_BUBBLE_ALPHA = 36;
     private static final int ID_CUSTOM_STARS = 37;
     private static final int ID_CUSTOM_ID = 38;
+    private static final int ID_AUDIO_AUTONEXT = 39;
 
     private final int category;
 
@@ -187,6 +188,7 @@ public class NaiLongSettingsActivity extends BaseFragment {
             items.add(new Item(VIEW_TYPE_SELECT, ID_DOWNLOAD_SPEED, "下载加速", DL_NAMES[lv]));
             items.add(new Item(VIEW_TYPE_SELECT, ID_UPLOAD_SPEED, "上传加速", UL_NAMES[ul]));
             items.add(new Item(VIEW_TYPE_CHECK, ID_MEDIA_BEST, "发送图片/视频默认最高质量", null));
+            items.add(new Item(VIEW_TYPE_CHECK, ID_AUDIO_AUTONEXT, "语音播完自动播下一条", null));
             items.add(new Item(VIEW_TYPE_SELECT, ID_STICKER_SIZE, "表情包/贴纸大小", stkName()));
         } else if (category == CAT_PRIVACY) {
             items.add(new Item(VIEW_TYPE_HEADER, 0, "隐私与安全", null));
@@ -236,6 +238,7 @@ public class NaiLongSettingsActivity extends BaseFragment {
             case ID_AUTO_REPLY: return SharedConfig.nailongAutoReply;
             case ID_DELETED_TRANSLUCENT: return SharedConfig.nailongDeletedTranslucent;
             case ID_TRANSPARENT_UI: return SharedConfig.nailongTransparentUI;
+            case ID_AUDIO_AUTONEXT: return SharedConfig.nailongAudioAutoNext;
         }
         return false;
     }
@@ -263,6 +266,7 @@ public class NaiLongSettingsActivity extends BaseFragment {
             case ID_AUTO_REPLY: SharedConfig.nailongAutoReply = !SharedConfig.nailongAutoReply; break;
             case ID_DELETED_TRANSLUCENT: SharedConfig.nailongDeletedTranslucent = !SharedConfig.nailongDeletedTranslucent; break;
             case ID_TRANSPARENT_UI: SharedConfig.nailongTransparentUI = !SharedConfig.nailongTransparentUI; break;
+            case ID_AUDIO_AUTONEXT: SharedConfig.nailongAudioAutoNext = !SharedConfig.nailongAudioAutoNext; break;
         }
         SharedConfig.saveConfig();
     }

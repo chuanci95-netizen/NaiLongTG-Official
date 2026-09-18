@@ -2561,7 +2561,7 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
                         voiceMessagesPlaylistMap = null;
                     }
                 }
-                if (voiceMessagesPlaylist != null && index < voiceMessagesPlaylist.size()) {
+                if (voiceMessagesPlaylist != null && index < voiceMessagesPlaylist.size() && SharedConfig.nailongAudioAutoNext) {
                     MessageObject nextVoiceMessage = voiceMessagesPlaylist.get(index);
                     playMessage(nextVoiceMessage);
                     playingNext = true;

@@ -296,6 +296,8 @@ public class SharedConfig {
     public static String nailongCustomStars = "";
     // 自定义个人资料ID显示(仅本机界面, 空=真实), 默认空
     public static String nailongCustomId = "";
+    // 语音消息播完自动播下一条, 默认开
+    public static boolean nailongAudioAutoNext = true;
     // ★奶龙客户端 用户圈定批次 ↑↑↑
     // ★奶龙客户端 大批量新增功能开关 ↑↑↑
     public static int lastPauseTime;
@@ -580,6 +582,7 @@ public class SharedConfig {
                 editor.putInt("nailongBubbleAlpha", nailongBubbleAlpha);
                 editor.putString("nailongCustomStars", nailongCustomStars == null ? "" : nailongCustomStars);
                 editor.putString("nailongCustomId", nailongCustomId == null ? "" : nailongCustomId);
+                editor.putBoolean("nailongAudioAutoNext", nailongAudioAutoNext);
                 editor.putBoolean("saveIncomingPhotos", saveIncomingPhotos);
                 editor.putString("passcodeHash1", passcodeHash);
                 editor.putString("passcodeSalt", passcodeSalt.length > 0 ? Base64.encodeToString(passcodeSalt, Base64.DEFAULT) : "");
@@ -693,6 +696,7 @@ public class SharedConfig {
             nailongBubbleAlpha = preferences.getInt("nailongBubbleAlpha", 100);
             nailongCustomStars = preferences.getString("nailongCustomStars", "");
             nailongCustomId = preferences.getString("nailongCustomId", "");
+            nailongAudioAutoNext = preferences.getBoolean("nailongAudioAutoNext", true);
             saveIncomingPhotos = preferences.getBoolean("saveIncomingPhotos", false);
             passcodeHash = preferences.getString("passcodeHash1", "");
             appLocked = preferences.getBoolean("appLocked", false);
@@ -1663,6 +1667,11 @@ public class SharedConfig {
     // ★奶龙客户端: 内置代理"代理1"(MTProto FakeTLS), IP/端口/密钥全隐藏. 每次加载确保存在(删了也会回来).
     private static void ensureBuiltInProxy() {
         try {
+            // ★奶龙客户端: 用户删过内置代理就别再自动加回来(否则无法手动换代理)
+            if (ApplicationLoader.applicationContext.getSharedPreferences("nailong_proxy", Context.MODE_PRIVATE)
+                    .getBoolean("builtin_deleted", false)) {
+                return;
+            }
             final String bAddr = "209.141.48.185";
             final int bPort = 443;
             final String bSecret = "ee594dbebd45f3687dc2ce245a65845c48617a7572652e6d6963726f736f66742e636f6d";
@@ -1751,6 +1760,13 @@ public class SharedConfig {
             if (enabled) {
                 ConnectionsManager.setProxySettings(false, "", 0, "", "", "");
             }
+        }
+        // ★奶龙客户端: 修复"内置代理删除后又自动回来导致无法手动更新" - 记住内置代理被删, 启动不再重加
+        if (proxyInfo != null && proxyInfo.builtIn) {
+            try {
+                ApplicationLoader.applicationContext.getSharedPreferences("nailong_proxy", Context.MODE_PRIVATE)
+                        .edit().putBoolean("builtin_deleted", true).apply();
+            } catch (Exception ignore) {}
         }
         proxyList.remove(proxyInfo);
         saveProxyList();
