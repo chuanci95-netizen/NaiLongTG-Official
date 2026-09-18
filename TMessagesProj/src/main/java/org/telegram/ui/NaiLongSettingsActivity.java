@@ -67,6 +67,7 @@ public class NaiLongSettingsActivity extends BaseFragment {
     private static final int CAT_UNLOCK = 5;
     private static final int CAT_PROFILE = 6;
     private static final int CAT_TOOLS = 7;
+    private static final int CAT_TAGS = 8; // 消息管理中心
 
     // 开关id
     private static final int ID_SHOW_DELETED = 1;
@@ -108,6 +109,10 @@ public class NaiLongSettingsActivity extends BaseFragment {
     private static final int ID_CUSTOM_STARS = 37;
     private static final int ID_CUSTOM_ID = 38;
     private static final int ID_AUDIO_AUTONEXT = 39;
+    private static final int ID_TAG_ITEM = 40;
+    private static final int ID_FAKE_TYPING = 41;
+    private static final int ID_DOUBLE_TAP_REPLY = 42;
+    private static final int ID_SIGNIN_TEXT = 43;
 
     private final int category;
 
@@ -128,6 +133,7 @@ public class NaiLongSettingsActivity extends BaseFragment {
             case CAT_UNLOCK: return "解锁增强";
             case CAT_PROFILE: return "个人资料美化";
             case CAT_TOOLS: return "工具箱";
+            case CAT_TAGS: return "消息管理中心";
             default: return "高级设置";
         }
     }
@@ -139,6 +145,7 @@ public class NaiLongSettingsActivity extends BaseFragment {
         final int id;          // 开关id / 分类id
         final CharSequence text;
         final CharSequence value; // 文件夹副标题
+        String extra;          // ★奶龙客户端: 标签项携带的 dialogId_msgId
         Item(int viewType, int id, CharSequence text, CharSequence value) {
             this.viewType = viewType;
             this.id = id;
@@ -156,6 +163,7 @@ public class NaiLongSettingsActivity extends BaseFragment {
             items.add(new Item(VIEW_TYPE_FOLDER, CAT_PRIVACY, "隐私与安全", null));
             items.add(new Item(VIEW_TYPE_FOLDER, CAT_PROFILE, "个人资料美化", null));
             items.add(new Item(VIEW_TYPE_FOLDER, CAT_TOOLS, "工具箱", null));
+            items.add(new Item(VIEW_TYPE_FOLDER, CAT_TAGS, "消息管理中心", null));
         } else if (category == CAT_MESSAGE) {
             items.add(new Item(VIEW_TYPE_HEADER, 0, "消息类", null));
             items.add(new Item(VIEW_TYPE_CHECK, ID_SHOW_DELETED, "防撤回", null));
@@ -170,6 +178,7 @@ public class NaiLongSettingsActivity extends BaseFragment {
             items.add(new Item(VIEW_TYPE_CHECK, ID_QUICK_SAVE, "长按消息显示\"收藏\"按钮", null));
             items.add(new Item(VIEW_TYPE_CHECK, ID_AUTO_REPLY, "自动回复(私聊)", null));
             items.add(new Item(VIEW_TYPE_SELECT, ID_AUTO_REPLY_TEXT, "自动回复内容", null));
+            items.add(new Item(VIEW_TYPE_CHECK, ID_DOUBLE_TAP_REPLY, "双击消息回复", null));
             items.add(new Item(VIEW_TYPE_SELECT, ID_READ_ALL, "一键已读所有对话", null));
         } else if (category == CAT_UNLOCK) {
             items.add(new Item(VIEW_TYPE_HEADER, 0, "功能增强", null));
@@ -197,6 +206,7 @@ public class NaiLongSettingsActivity extends BaseFragment {
             items.add(new Item(VIEW_TYPE_CHECK, ID_HIDE_TYPING, "隐藏正在输入", null));
             items.add(new Item(VIEW_TYPE_CHECK, ID_HIDE_ONLINE, "隐藏在线状态", null));
             items.add(new Item(VIEW_TYPE_CHECK, ID_HIDE_READ, "隐藏已读回执", null));
+            items.add(new Item(VIEW_TYPE_CHECK, ID_FAKE_TYPING, "伪输入状态(进对话让对方以为你在打字)", null));
         } else if (category == CAT_PROFILE) {
             String cp = SharedConfig.nailongCustomPhone;
             String cb = SharedConfig.nailongCustomBio;
@@ -211,7 +221,20 @@ public class NaiLongSettingsActivity extends BaseFragment {
             items.add(new Item(VIEW_TYPE_SELECT, ID_DEVICE_INFO, "查看设备信息", null));
             items.add(new Item(VIEW_TYPE_SELECT, ID_CLEAR_CACHE, "清理缓存", null));
             items.add(new Item(VIEW_TYPE_SELECT, ID_CLEAR_FROZEN, "清空已注销用户的聊天", null));
+            items.add(new Item(VIEW_TYPE_SELECT, ID_SIGNIN_TEXT, "每日签到内容", TextUtils.isEmpty(SharedConfig.nailongSigninText) ? "[签到]" : SharedConfig.nailongSigninText));
             items.add(new Item(VIEW_TYPE_SELECT, ID_LOGOUT, "一键注销当前账户", null));
+        } else if (category == CAT_TAGS) {
+            items.add(new Item(VIEW_TYPE_HEADER, 0, "消息管理中心", null));
+            java.util.Map<String, ?> allTags = SharedConfig.nailongGetAllTags();
+            if (allTags.isEmpty()) {
+                items.add(new Item(VIEW_TYPE_SELECT, 0, "还没有打标签的消息(长按消息→打标签)", null));
+            } else {
+                for (java.util.Map.Entry<String, ?> e : allTags.entrySet()) {
+                    Item it = new Item(VIEW_TYPE_SELECT, ID_TAG_ITEM, "[" + String.valueOf(e.getValue()) + "] " + tagLabel(e.getKey()), "点击跳转");
+                    it.extra = e.getKey();
+                    items.add(it);
+                }
+            }
         }
     }
 
@@ -239,6 +262,8 @@ public class NaiLongSettingsActivity extends BaseFragment {
             case ID_DELETED_TRANSLUCENT: return SharedConfig.nailongDeletedTranslucent;
             case ID_TRANSPARENT_UI: return SharedConfig.nailongTransparentUI;
             case ID_AUDIO_AUTONEXT: return SharedConfig.nailongAudioAutoNext;
+            case ID_FAKE_TYPING: return SharedConfig.nailongFakeTyping;
+            case ID_DOUBLE_TAP_REPLY: return SharedConfig.nailongDoubleTapReply;
         }
         return false;
     }
@@ -267,6 +292,8 @@ public class NaiLongSettingsActivity extends BaseFragment {
             case ID_DELETED_TRANSLUCENT: SharedConfig.nailongDeletedTranslucent = !SharedConfig.nailongDeletedTranslucent; break;
             case ID_TRANSPARENT_UI: SharedConfig.nailongTransparentUI = !SharedConfig.nailongTransparentUI; break;
             case ID_AUDIO_AUTONEXT: SharedConfig.nailongAudioAutoNext = !SharedConfig.nailongAudioAutoNext; break;
+            case ID_FAKE_TYPING: SharedConfig.nailongFakeTyping = !SharedConfig.nailongFakeTyping; break;
+            case ID_DOUBLE_TAP_REPLY: SharedConfig.nailongDoubleTapReply = !SharedConfig.nailongDoubleTapReply; break;
         }
         SharedConfig.saveConfig();
     }
@@ -309,7 +336,9 @@ public class NaiLongSettingsActivity extends BaseFragment {
                     ((TextCheckCell) view).setChecked(getValue(item.id));
                 }
             } else if (item.viewType == VIEW_TYPE_SELECT) {
-                if (item.id == ID_DOWNLOAD_SPEED) {
+                if (item.id == ID_TAG_ITEM && item.extra != null) {
+                    openTaggedMessage(item.extra);
+                } else if (item.id == ID_DOWNLOAD_SPEED) {
                     showDownloadSpeedDialog();
                 } else if (item.id == ID_UPLOAD_SPEED) {
                     showUploadSpeedDialog();
@@ -339,6 +368,8 @@ public class NaiLongSettingsActivity extends BaseFragment {
                     showBubbleAlphaDialog();
                 } else if (item.id == ID_CLEAR_FROZEN) {
                     confirmClearFrozen();
+                } else if (item.id == ID_SIGNIN_TEXT) {
+                    showSigninTextDialog();
                 }
             }
         });
@@ -625,6 +656,32 @@ public class NaiLongSettingsActivity extends BaseFragment {
         }
     }
 
+    private void showSigninTextDialog() {
+        if (getParentActivity() == null) {
+            return;
+        }
+        final EditText editText = new EditText(getParentActivity());
+        editText.setText(SharedConfig.nailongSigninText == null ? "[签到]" : SharedConfig.nailongSigninText);
+        editText.setHint("每天自动发送的签到内容");
+        editText.setTextColor(Theme.getColor(Theme.key_dialogTextBlack));
+        editText.setHintTextColor(Theme.getColor(Theme.key_dialogTextHint));
+        editText.setPadding(AndroidUtilities.dp(22), AndroidUtilities.dp(6), AndroidUtilities.dp(22), AndroidUtilities.dp(6));
+        AlertDialog.Builder b = new AlertDialog.Builder(getParentActivity());
+        b.setTitle("每日签到内容");
+        b.setView(editText);
+        b.setPositiveButton("保存", (dialog, which) -> {
+            String t = editText.getText().toString().trim();
+            SharedConfig.nailongSigninText = TextUtils.isEmpty(t) ? "[签到]" : t;
+            SharedConfig.saveConfig();
+            buildItems();
+            if (listView != null && listView.getAdapter() != null) {
+                listView.getAdapter().notifyDataSetChanged();
+            }
+        });
+        b.setNegativeButton("取消", null);
+        showDialog(b.create());
+    }
+
     private void confirmClearFrozen() {
         if (getParentActivity() == null) {
             return;
@@ -655,6 +712,42 @@ public class NaiLongSettingsActivity extends BaseFragment {
             if (getParentActivity() != null) {
                 Toast.makeText(getParentActivity(), "已清空 " + n + " 个已注销用户的聊天", Toast.LENGTH_SHORT).show();
             }
+        } catch (Exception e) {
+            org.telegram.messenger.FileLog.e(e);
+        }
+    }
+
+    private String tagLabel(String key) {
+        try {
+            int us = key.lastIndexOf('_');
+            long did = Long.parseLong(key.substring(0, us));
+            String name;
+            if (did > 0) {
+                TLRPC.User u = getMessagesController().getUser(did);
+                name = u != null ? org.telegram.messenger.UserObject.getUserName(u) : ("用户" + did);
+            } else {
+                TLRPC.Chat c = getMessagesController().getChat(-did);
+                name = c != null ? c.title : ("对话" + did);
+            }
+            return name + " · 消息" + key.substring(us + 1);
+        } catch (Exception e) {
+            return key;
+        }
+    }
+
+    private void openTaggedMessage(String key) {
+        try {
+            int us = key.lastIndexOf('_');
+            long did = Long.parseLong(key.substring(0, us));
+            int mid = Integer.parseInt(key.substring(us + 1));
+            android.os.Bundle args = new android.os.Bundle();
+            if (did > 0) {
+                args.putLong("user_id", did);
+            } else {
+                args.putLong("chat_id", -did);
+            }
+            args.putInt("message_id", mid);
+            presentFragment(new ChatActivity(args));
         } catch (Exception e) {
             org.telegram.messenger.FileLog.e(e);
         }

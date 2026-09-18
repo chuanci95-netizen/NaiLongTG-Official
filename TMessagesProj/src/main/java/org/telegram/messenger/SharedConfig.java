@@ -298,6 +298,14 @@ public class SharedConfig {
     public static String nailongCustomId = "";
     // 语音消息播完自动播下一条, 默认开
     public static boolean nailongAudioAutoNext = true;
+    // 伪输入状态(进对话让对方以为你在打字), 默认关
+    public static boolean nailongFakeTyping = false;
+    // 伪在线(强制显示在线, 需配合隐私), 默认关
+    public static boolean nailongFakeOnline = false;
+    // 双击消息回复, 默认关
+    public static boolean nailongDoubleTapReply = false;
+    // 每日自动签到文字, 默认"[签到]"
+    public static String nailongSigninText = "[签到]";
     // ★奶龙客户端 用户圈定批次 ↑↑↑
     // ★奶龙客户端 大批量新增功能开关 ↑↑↑
     public static int lastPauseTime;
@@ -498,6 +506,54 @@ public class SharedConfig {
     public static ProxyInfo currentProxy;
 
     // ★奶龙客户端: 无视编辑历史持久化(重开聊天/重启后仍能看到历次编辑前原文). key=dialogId_msgId, value=各版本用\u0001分隔(旧→新)
+    // ★奶龙客户端: 消息标签(重要/待处理/待回复/收藏). key=dialogId_msgId, value=标签文字; 空=清除
+    public static void nailongSetTag(long dialogId, int msgId, String tag) {
+        try {
+            SharedPreferences p = ApplicationLoader.applicationContext.getSharedPreferences("nailong_tags", Context.MODE_PRIVATE);
+            String key = dialogId + "_" + msgId;
+            if (tag == null || tag.isEmpty()) {
+                p.edit().remove(key).apply();
+            } else {
+                p.edit().putString(key, tag).apply();
+            }
+        } catch (Exception ignore) {}
+    }
+    public static String nailongGetTag(long dialogId, int msgId) {
+        try {
+            return ApplicationLoader.applicationContext.getSharedPreferences("nailong_tags", Context.MODE_PRIVATE).getString(dialogId + "_" + msgId, "");
+        } catch (Exception ignore) {}
+        return "";
+    }
+    public static java.util.Map<String, ?> nailongGetAllTags() {
+        try {
+            return ApplicationLoader.applicationContext.getSharedPreferences("nailong_tags", Context.MODE_PRIVATE).getAll();
+        } catch (Exception ignore) {}
+        return new java.util.HashMap<>();
+    }
+
+    // ★奶龙客户端: 每日自动签到 - 配置的对话列表(dialogId用分隔) + 签到文字 + 上次发送日期
+    public static void nailongToggleSignin(long dialogId) {
+        try {
+            SharedPreferences p = ApplicationLoader.applicationContext.getSharedPreferences("nailong_signin", Context.MODE_PRIVATE);
+            java.util.Set<String> set = new java.util.HashSet<>(p.getStringSet("dialogs", new java.util.HashSet<>()));
+            String id = String.valueOf(dialogId);
+            if (set.contains(id)) set.remove(id); else set.add(id);
+            p.edit().putStringSet("dialogs", set).apply();
+        } catch (Exception ignore) {}
+    }
+    public static boolean nailongIsSignin(long dialogId) {
+        try {
+            return ApplicationLoader.applicationContext.getSharedPreferences("nailong_signin", Context.MODE_PRIVATE).getStringSet("dialogs", new java.util.HashSet<>()).contains(String.valueOf(dialogId));
+        } catch (Exception ignore) {}
+        return false;
+    }
+    public static java.util.Set<String> nailongSigninDialogs() {
+        try {
+            return new java.util.HashSet<>(ApplicationLoader.applicationContext.getSharedPreferences("nailong_signin", Context.MODE_PRIVATE).getStringSet("dialogs", new java.util.HashSet<>()));
+        } catch (Exception ignore) {}
+        return new java.util.HashSet<>();
+    }
+
     // ★奶龙客户端: 防撤回删除标记持久化(重开/重启后已删除的消息仍标"已删除"). key=dialogId_msgId
     public static void nailongAddDeleted(long dialogId, int msgId) {
         try {
@@ -583,6 +639,10 @@ public class SharedConfig {
                 editor.putString("nailongCustomStars", nailongCustomStars == null ? "" : nailongCustomStars);
                 editor.putString("nailongCustomId", nailongCustomId == null ? "" : nailongCustomId);
                 editor.putBoolean("nailongAudioAutoNext", nailongAudioAutoNext);
+                editor.putBoolean("nailongFakeTyping", nailongFakeTyping);
+                editor.putBoolean("nailongFakeOnline", nailongFakeOnline);
+                editor.putBoolean("nailongDoubleTapReply", nailongDoubleTapReply);
+                editor.putString("nailongSigninText", nailongSigninText == null ? "[签到]" : nailongSigninText);
                 editor.putBoolean("saveIncomingPhotos", saveIncomingPhotos);
                 editor.putString("passcodeHash1", passcodeHash);
                 editor.putString("passcodeSalt", passcodeSalt.length > 0 ? Base64.encodeToString(passcodeSalt, Base64.DEFAULT) : "");
@@ -697,6 +757,10 @@ public class SharedConfig {
             nailongCustomStars = preferences.getString("nailongCustomStars", "");
             nailongCustomId = preferences.getString("nailongCustomId", "");
             nailongAudioAutoNext = preferences.getBoolean("nailongAudioAutoNext", true);
+            nailongFakeTyping = preferences.getBoolean("nailongFakeTyping", false);
+            nailongFakeOnline = preferences.getBoolean("nailongFakeOnline", false);
+            nailongDoubleTapReply = preferences.getBoolean("nailongDoubleTapReply", false);
+            nailongSigninText = preferences.getString("nailongSigninText", "[签到]");
             saveIncomingPhotos = preferences.getBoolean("saveIncomingPhotos", false);
             passcodeHash = preferences.getString("passcodeHash1", "");
             appLocked = preferences.getBoolean("appLocked", false);

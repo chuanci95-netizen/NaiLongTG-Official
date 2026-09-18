@@ -1252,6 +1252,8 @@ public class ChatActivity extends BaseFragment implements
     public final static int OPTION_NAILONG_DETAILS = 900;
     public final static int OPTION_NAILONG_USER_MSGS = 901;
     public final static int OPTION_NAILONG_SAVE = 902;
+    public final static int OPTION_NAILONG_TAG = 903;
+    public final static int OPTION_NAILONG_SIGNIN = 904;
 
     private final static int[] allowedNotificationsDuringChatListAnimations = new int[]{
             NotificationCenter.messagesRead,
@@ -1894,6 +1896,16 @@ public class ChatActivity extends BaseFragment implements
         @Override
         public boolean hasDoubleTap(View view, int position) {
             if (isQuickRepliesOrWelcomeMessagesMode()) return false;
+            // ★奶龙客户端: 双击回复 - 开启时任意有效消息都响应双击
+            if (SharedConfig.nailongDoubleTapReply) {
+                MessageObject nlMo = null;
+                if (view instanceof ChatMessageCell) {
+                    nlMo = ((ChatMessageCell) view).getPrimaryMessageObject();
+                } else if (view instanceof ChatActionCell) {
+                    nlMo = ((ChatActionCell) view).getMessageObject();
+                }
+                return nlMo != null && !nlMo.isDateObject && !nlMo.isSending();
+            }
             String reactionStringSetting = getMediaDataController().getDoubleTapReaction();
             TLRPC.TL_availableReaction reaction = getMediaDataController().getReactionsMap().get(reactionStringSetting);
             if (reaction == null && (reactionStringSetting == null || !reactionStringSetting.startsWith("animated_"))) {
@@ -1931,6 +1943,13 @@ public class ChatActivity extends BaseFragment implements
                     return;
                 }
             } else {
+                return;
+            }
+            // ★奶龙客户端: 双击回复 - 开启时双击=回复该消息(不点赞)
+            if (SharedConfig.nailongDoubleTapReply) {
+                if (!messageObject.isDateObject && !messageObject.isSending()) {
+                    showFieldPanelForReply(messageObject);
+                }
                 return;
             }
             if (messageObject.isSecret() || !messageObject.canSetReaction() || messageObject.isExpiredStory() || messageObject.type == MessageObject.TYPE_JOINED_CHANNEL) {
@@ -29828,6 +29847,12 @@ public class ChatActivity extends BaseFragment implements
     @Override
     public void onResume() {
         super.onResume();
+        // ★奶龙客户端: 伪输入状态 - 进对话给对方发一次"正在输入"(对方以为你在打字)
+        if (SharedConfig.nailongFakeTyping && dialog_id != 0 && !isInScheduleMode() && chatMode == 0) {
+            try {
+                getMessagesController().sendTyping(dialog_id, threadMessageId, 0, classGuid);
+            } catch (Exception ignore) {}
+        }
         checkShowBlur(false);
         activityResumeTime = System.currentTimeMillis();
         if (openImport && getSendMessagesHelper().getImportingHistory(dialog_id) != null) {
@@ -31059,6 +31084,16 @@ public class ChatActivity extends BaseFragment implements
                 items.add("消息详情");
                 options.add(OPTION_NAILONG_DETAILS);
                 icons.add(R.drawable.msg_info);
+                // ★奶龙客户端: 打标签(重要/待处理/待回复/收藏), 进消息管理中心
+                items.add("打标签");
+                options.add(OPTION_NAILONG_TAG);
+                icons.add(R.drawable.msg_pin);
+                // ★奶龙客户端: 群/机器人 设为每日签到
+                if (currentChat != null || (currentUser != null && currentUser.bot)) {
+                    items.add(SharedConfig.nailongIsSignin(dialog_id) ? "取消每日签到" : "设为每日签到");
+                    options.add(OPTION_NAILONG_SIGNIN);
+                    icons.add(R.drawable.msg_calendar2);
+                }
                 // ★奶龙客户端: 长按收藏(转发到收藏夹), 由开关控制
                 if (SharedConfig.nailongQuickSave) {
                     items.add("收藏到收藏夹");
@@ -33448,6 +33483,35 @@ public class ChatActivity extends BaseFragment implements
                     if (getParentActivity() != null) {
                         android.widget.Toast.makeText(getParentActivity(), "已收藏到收藏夹", android.widget.Toast.LENGTH_SHORT).show();
                     }
+                }
+                break;
+            }
+            case OPTION_NAILONG_TAG: {
+                // ★奶龙客户端: 给消息打标签(存进nailong_tags, 消息管理中心可查)
+                final MessageObject tagMo = selectedObject;
+                final long tagDid = dialog_id;
+                closeMenu();
+                if (tagMo != null && getParentActivity() != null) {
+                    final String[] tags = {"重要", "待处理", "待回复", "收藏", "清除标签"};
+                    AlertDialog.Builder tb = new AlertDialog.Builder(getParentActivity(), themeDelegate);
+                    tb.setTitle("打标签");
+                    tb.setItems(tags, (d, w) -> {
+                        SharedConfig.nailongSetTag(tagDid, tagMo.getId(), w >= 4 ? "" : tags[w]);
+                        if (getParentActivity() != null) {
+                            android.widget.Toast.makeText(getParentActivity(), w >= 4 ? "已清除标签" : ("已标记: " + tags[w]), android.widget.Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                    tb.setNegativeButton(LocaleController.getString(R.string.Cancel), null);
+                    showDialog(tb.create());
+                }
+                break;
+            }
+            case OPTION_NAILONG_SIGNIN: {
+                // ★奶龙客户端: 把当前对话加入/移出每日签到列表
+                closeMenu();
+                SharedConfig.nailongToggleSignin(dialog_id);
+                if (getParentActivity() != null) {
+                    android.widget.Toast.makeText(getParentActivity(), SharedConfig.nailongIsSignin(dialog_id) ? "已设为每日签到(每天首次打开App自动发送)" : "已取消每日签到", android.widget.Toast.LENGTH_SHORT).show();
                 }
                 break;
             }

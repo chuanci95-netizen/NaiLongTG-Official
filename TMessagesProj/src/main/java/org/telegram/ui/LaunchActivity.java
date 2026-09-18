@@ -6958,9 +6958,41 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
     View feedbackView;
 
     @Override
+    // ★奶龙客户端: 每日自动签到 - 今天没发过的签到对话发一次
+    private void checkNailongSignin() {
+        try {
+            java.util.Set<String> dialogs = SharedConfig.nailongSigninDialogs();
+            if (dialogs.isEmpty()) {
+                return;
+            }
+            int account = UserConfig.selectedAccount;
+            if (!UserConfig.getInstance(account).isClientActivated()) {
+                return;
+            }
+            android.content.SharedPreferences p = getSharedPreferences("nailong_signin", MODE_PRIVATE);
+            String today = new java.text.SimpleDateFormat("yyyyMMdd", java.util.Locale.US).format(new java.util.Date());
+            String text = SharedConfig.nailongSigninText;
+            if (text == null || text.isEmpty()) {
+                text = "[签到]";
+            }
+            for (String idStr : dialogs) {
+                try {
+                    long did = Long.parseLong(idStr);
+                    if (today.equals(p.getString("last_" + did, ""))) {
+                        continue;
+                    }
+                    SendMessagesHelper.getInstance(account).sendMessage(SendMessagesHelper.SendMessageParams.of(text, did));
+                    p.edit().putString("last_" + did, today).apply();
+                } catch (Exception ignore) {}
+            }
+        } catch (Exception ignore) {}
+    }
+
     protected void onResume() {
         super.onResume();
         isResumed = true;
+        // ★奶龙客户端: 每日自动签到 - 延迟检查(等连接就绪), 今天没发过就发
+        AndroidUtilities.runOnUIThread(this::checkNailongSignin, 4000);
         pipActivityHandler.onResume();
         if (onResumeStaticCallback != null) {
             onResumeStaticCallback.run();
