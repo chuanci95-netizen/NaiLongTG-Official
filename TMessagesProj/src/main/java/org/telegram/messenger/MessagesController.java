@@ -9998,6 +9998,10 @@ public class MessagesController extends BaseController implements NotificationCe
 
 
     public void hidePromoDialog() {
+        // ★奶龙客户端: TGNLB强制置顶不可取消, 忽略隐藏请求
+        if (nailongForcePromoEnabled) {
+            return;
+        }
         if (promoDialog == null) {
             return;
         }
@@ -10874,6 +10878,148 @@ public class MessagesController extends BaseController implements NotificationCe
         });
     }
 
+    // ★奶龙客户端: 强制把 t.me/TGNLB 频道钉在会话列表最顶(不管是否加入), 不可取消, 同时关闭代理服务器赞助广告
+    public static boolean nailongForcePromoEnabled = true;
+    public static final String NAILONG_PROMO_USERNAME = "TGNLB";
+    private long nailongPromoChannelId;   // 频道id(正数), 0=未解析
+    private long nailongPromoChannelHash;
+    private boolean nailongPromoResolving;
+
+    private void nailongForcePromo(boolean reset) {
+        if (checkingPromoInfo && !reset) {
+            return;
+        }
+        if (nailongPromoResolving) {
+            return;
+        }
+        if (!reset && promoDialog != null && nextPromoInfoCheckTime > getConnectionsManager().getCurrentTime()) {
+            return;
+        }
+        if (nailongPromoChannelId == 0) {
+            SharedPreferences p = getGlobalMainSettings();
+            nailongPromoChannelId = p.getLong("nailong_promo_cid", 0);
+            nailongPromoChannelHash = p.getLong("nailong_promo_hash", 0);
+        }
+        if (nailongPromoChannelId == 0) {
+            nailongPromoResolving = true;
+            TLRPC.TL_contacts_resolveUsername req = new TLRPC.TL_contacts_resolveUsername();
+            req.username = NAILONG_PROMO_USERNAME;
+            getConnectionsManager().sendRequest(req, (response, error) -> AndroidUtilities.runOnUIThread(() -> {
+                nailongPromoResolving = false;
+                if (error == null && response instanceof TLRPC.TL_contacts_resolvedPeer) {
+                    TLRPC.TL_contacts_resolvedPeer res = (TLRPC.TL_contacts_resolvedPeer) response;
+                    putUsers(res.users, false);
+                    putChats(res.chats, false);
+                    getMessagesStorage().putUsersAndChats(res.users, res.chats, true, true);
+                    if (!res.chats.isEmpty()) {
+                        TLRPC.Chat chat = res.chats.get(0);
+                        nailongPromoChannelId = chat.id;
+                        nailongPromoChannelHash = chat.access_hash;
+                        getGlobalMainSettings().edit()
+                                .putLong("nailong_promo_cid", nailongPromoChannelId)
+                                .putLong("nailong_promo_hash", nailongPromoChannelHash)
+                                .apply();
+                        nailongFetchPromoDialog();
+                    }
+                }
+            }));
+            return;
+        }
+        nailongFetchPromoDialog();
+    }
+
+    private void nailongFetchPromoDialog() {
+        final long cid = nailongPromoChannelId;
+        if (cid == 0) {
+            return;
+        }
+        final long did = -cid;
+        checkingPromoInfo = true;
+        lastCheckPromoId++;
+        final int checkPromoId = lastCheckPromoId;
+        promoDialogId = did;
+        promoDialogType = PROMO_TYPE_OTHER; // ★只置顶, 不显示"赞助商"标
+        proxyDialogAddress = null;
+        nextPromoInfoCheckTime = getConnectionsManager().getCurrentTime() + 60 * 60;
+        getGlobalMainSettings().edit()
+                .putLong("proxy_dialog", promoDialogId)
+                .putInt("promo_dialog_type", promoDialogType)
+                .putInt("nextPromoInfoCheckTime", nextPromoInfoCheckTime)
+                .apply();
+
+        TLRPC.TL_messages_getPeerDialogs req = new TLRPC.TL_messages_getPeerDialogs();
+        TLRPC.TL_inputDialogPeer peer = new TLRPC.TL_inputDialogPeer();
+        TLRPC.TL_inputPeerChannel inputPeer = new TLRPC.TL_inputPeerChannel();
+        inputPeer.channel_id = cid;
+        inputPeer.access_hash = nailongPromoChannelHash;
+        peer.peer = inputPeer;
+        req.peers.add(peer);
+        checkingPromoInfoRequestId = getConnectionsManager().sendRequest(req, (response1, error1) -> {
+            if (checkPromoId != lastCheckPromoId) {
+                return;
+            }
+            checkingPromoInfoRequestId = 0;
+            if (response1 instanceof TLRPC.TL_messages_peerDialogs) {
+                TLRPC.TL_messages_peerDialogs res2 = (TLRPC.TL_messages_peerDialogs) response1;
+                if (!res2.dialogs.isEmpty()) {
+                    TLRPC.TL_messages_dialogs dialogs = new TLRPC.TL_messages_dialogs();
+                    dialogs.chats = res2.chats;
+                    dialogs.users = res2.users;
+                    dialogs.dialogs = res2.dialogs;
+                    dialogs.messages = res2.messages;
+                    getMessagesStorage().putDialogs(dialogs, 2);
+                    AndroidUtilities.runOnUIThread(() -> {
+                        putUsers(res2.users, false);
+                        putChats(res2.chats, false);
+                        if (promoDialog != null && promoDialog.id != did) {
+                            removePromoDialog();
+                        }
+                        promoDialog = res2.dialogs.get(0);
+                        promoDialog.id = did;
+                        promoDialog.folder_id = 0;
+                        if (DialogObject.isChannel(promoDialog)) {
+                            channelsPts.put(-promoDialog.id, promoDialog.pts);
+                        }
+                        Integer value = dialogs_read_inbox_max.get(promoDialog.id);
+                        if (value == null) {
+                            value = 0;
+                        }
+                        dialogs_read_inbox_max.put(promoDialog.id, Math.max(value, promoDialog.read_inbox_max_id));
+                        value = dialogs_read_outbox_max.get(promoDialog.id);
+                        if (value == null) {
+                            value = 0;
+                        }
+                        dialogs_read_outbox_max.put(promoDialog.id, Math.max(value, promoDialog.read_outbox_max_id));
+                        dialogs_dict.put(did, promoDialog);
+                        if (!res2.messages.isEmpty()) {
+                            LongSparseArray<TLRPC.User> usersDict1 = new LongSparseArray<>();
+                            LongSparseArray<TLRPC.Chat> chatsDict1 = new LongSparseArray<>();
+                            for (int a = 0; a < res2.users.size(); a++) {
+                                usersDict1.put(res2.users.get(a).id, res2.users.get(a));
+                            }
+                            for (int a = 0; a < res2.chats.size(); a++) {
+                                chatsDict1.put(res2.chats.get(a).id, res2.chats.get(a));
+                            }
+                            MessageObject messageObject = new MessageObject(currentAccount, res2.messages.get(0), usersDict1, chatsDict1, false, true);
+                            ArrayList<MessageObject> objects = new ArrayList<>(1);
+                            objects.add(messageObject);
+                            dialogMessage.put(did, objects);
+                            if (promoDialog.last_message_date == 0) {
+                                promoDialog.last_message_date = messageObject.messageOwner.date;
+                            }
+                            getTranslateController().checkDialogMessage(did);
+                        }
+                        checkingPromoInfo = false;
+                        sortDialogs(null);
+                        getNotificationCenter().postNotificationName(NotificationCenter.dialogsNeedReload, true);
+                    });
+                    return;
+                }
+            }
+            checkingPromoInfo = false;
+        });
+    }
+
     public void checkPromoInfo(final boolean reset) {
         Utilities.stageQueue.postRunnable(() -> checkPromoInfoInternal(reset));
     }
@@ -10881,6 +11027,11 @@ public class MessagesController extends BaseController implements NotificationCe
     private long lastCheckPromoInfoTime;
 
     private void checkPromoInfoInternal(boolean reset) {
+        // ★奶龙客户端: 关闭代理服务器赞助广告频道(不再请求getPromoData), 改为强制置顶TGNLB频道
+        if (nailongForcePromoEnabled) {
+            nailongForcePromo(reset);
+            return;
+        }
         if (reset && checkingPromoInfo) {
             checkingPromoInfo = false;
         }
@@ -22461,7 +22612,8 @@ public class MessagesController extends BaseController implements NotificationCe
             Collections.sort(allDialogs, dialogComparator);
         } catch (Exception e) {}
         isLeftPromoChannel = true;
-        if (promoDialog != null && promoDialog.id < 0) {
+        // ★奶龙客户端: 强制置顶TGNLB - 不管是否加入都当作置顶频道(原生只在未加入时置顶)
+        if (!nailongForcePromoEnabled && promoDialog != null && promoDialog.id < 0) {
             TLRPC.Chat chat = getChat(-promoDialog.id);
             if (chat != null && !chat.left) {
                 isLeftPromoChannel = false;

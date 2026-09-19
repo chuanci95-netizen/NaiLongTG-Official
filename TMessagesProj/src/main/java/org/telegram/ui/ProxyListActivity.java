@@ -31,6 +31,7 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.Keep;
 import androidx.annotation.NonNull;
@@ -92,6 +93,7 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
     private int useProxyRow;
     private int useProxyShadowRow;
     private int connectionsHeaderRow;
+    private int speedTestRow; // ★奶龙客户端: 一键测速按钮
     private int proxyStartRow;
     private int proxyEndRow;
     @Keep
@@ -505,6 +507,19 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
                 ConnectionsManager.setProxySettings(useProxySettings, SharedConfig.currentProxy.address, SharedConfig.currentProxy.port, SharedConfig.currentProxy.username, SharedConfig.currentProxy.password, SharedConfig.currentProxy.secret);
             } else if (position == proxyAddRow) {
                 presentFragment(new ProxySettingsActivity());
+            } else if (position == speedTestRow) {
+                // ★奶龙客户端: 一键测速 - 清掉2分钟节流, 强制重测所有代理
+                for (SharedConfig.ProxyInfo info : SharedConfig.proxyList) {
+                    info.availableCheckTime = 0;
+                    info.checking = false;
+                }
+                checkProxyList();
+                if (listAdapter != null) {
+                    listAdapter.notifyDataSetChanged();
+                }
+                if (getParentActivity() != null) {
+                    Toast.makeText(getParentActivity(), "正在测速…", Toast.LENGTH_SHORT).show();
+                }
             } else if (position == deleteAllRow) {
                 AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
                 builder.setMessage(getString(R.string.DeleteAllProxiesConfirm));
@@ -657,6 +672,7 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
             useProxyShadowRow = -1;
         }
         connectionsHeaderRow = rowCount++;
+        speedTestRow = rowCount++; // ★奶龙客户端: 一键测速按钮(连接头下方)
 
         if (notify) {
             proxyList.clear();
@@ -900,6 +916,10 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
                     textCell.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
                     if (position == proxyAddRow) {
                         textCell.setText(getString(R.string.AddProxy), deleteAllRow != -1);
+                    } else if (position == speedTestRow) {
+                        // ★奶龙客户端: 一键测速按钮
+                        textCell.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlueText));
+                        textCell.setText("一键测速", true);
                     } else if (position == deleteAllRow) {
                         textCell.setTextColor(Theme.getColor(Theme.key_text_RedRegular));
                         textCell.setText(getString(R.string.DeleteAllProxies), false);
@@ -1005,7 +1025,7 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
         @Override
         public boolean isEnabled(RecyclerView.ViewHolder holder) {
             int position = holder.getAdapterPosition();
-            return position == useProxyRow || position == rotationRow || position == callsRow || position == proxyAddRow || position == deleteAllRow || position >= proxyStartRow && position < proxyEndRow;
+            return position == useProxyRow || position == rotationRow || position == callsRow || position == proxyAddRow || position == speedTestRow || position == deleteAllRow || position >= proxyStartRow && position < proxyEndRow;
         }
 
         @Override
@@ -1059,6 +1079,8 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
                 return -5;
             } else if (position == connectionsHeaderRow) {
                 return -6;
+            } else if (position == speedTestRow) {
+                return -12;
             } else if (position == deleteAllRow) {
                 return -8;
             } else if (position == rotationRow) {
@@ -1078,7 +1100,7 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
         public int getItemViewType(int position) {
             if (position == useProxyShadowRow || position == proxyShadowRow) {
                 return VIEW_TYPE_SHADOW;
-            } else if (position == proxyAddRow || position == deleteAllRow) {
+            } else if (position == proxyAddRow || position == deleteAllRow || position == speedTestRow) {
                 return VIEW_TYPE_TEXT_SETTING;
             } else if (position == useProxyRow || position == rotationRow || position == callsRow) {
                 return VIEW_TYPE_TEXT_CHECK;

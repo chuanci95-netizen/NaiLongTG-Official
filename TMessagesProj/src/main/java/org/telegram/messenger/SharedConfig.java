@@ -1728,28 +1728,109 @@ public class SharedConfig {
         ensureBuiltInProxy();
     }
 
-    // ★奶龙客户端: 内置代理"代理1"(MTProto FakeTLS), IP/端口/密钥全隐藏. 每次加载确保存在(删了也会回来).
+    // ★奶龙客户端: 内置5个香港代理(MTProto FakeTLS), 列表显示名"香港服务器1~5", 真实IP/端口/密钥隐藏. 每次加载确保存在.
+    // 每项: {地址, 端口, secret, 显示名}
+    private static final String[][] BUILTIN_PROXIES = {
+            {"82.27.116.37", "20001", "eeceba61fccadc1d464c8e5d583253e59e7777772e6d6963726f736f66742e636f6d", "香港服务器1"},
+            {"82.27.116.179", "20002", "eea7ecf8f9053a29c6d6ad122e755f0d277777772e6d6963726f736f66742e636f6d", "香港服务器2"},
+            {"82.27.116.180", "20003", "ee3c17480c7cd19a09da21606007da75047777772e6d6963726f736f66742e636f6d", "香港服务器3"},
+            {"82.27.116.183", "20004", "ee3bde76540de09e58a4a5a764cbd211e17777772e6d6963726f736f66742e636f6d", "香港服务器4"},
+            {"82.27.116.184", "20005", "ee97669c114282953a38f6ac40c6932fa87777772e6d6963726f736f66742e636f6d", "香港服务器5"},
+    };
+
     private static void ensureBuiltInProxy() {
         try {
-            // ★奶龙客户端: 用户删过内置代理就别再自动加回来(否则无法手动换代理)
-            if (ApplicationLoader.applicationContext.getSharedPreferences("nailong_proxy", Context.MODE_PRIVATE)
-                    .getBoolean("builtin_deleted", false)) {
-                return;
-            }
-            final String bAddr = "209.141.48.185";
-            final int bPort = 443;
-            final String bSecret = "ee594dbebd45f3687dc2ce245a65845c48617a7572652e6d6963726f736f66742e636f6d";
-            for (ProxyInfo p : proxyList) {
-                if (bAddr.equals(p.address) && p.port == bPort && bSecret.equals(p.secret)) {
-                    p.name = "代理1";
-                    p.builtIn = true;
-                    return;
+            // ★奶龙客户端: 先清掉旧内置代理209.141.48.185(已弃用), 若正连着它则迁移到香港服务器1
+            migrateOldBuiltIn();
+
+            SharedPreferences np = ApplicationLoader.applicationContext.getSharedPreferences("nailong_proxy", Context.MODE_PRIVATE);
+            java.util.Set<String> deleted = np.getStringSet("builtin_deleted_ids", null);
+
+            for (String[] b : BUILTIN_PROXIES) {
+                final String bAddr = b[0];
+                final int bPort = Integer.parseInt(b[1]);
+                final String bSecret = b[2];
+                final String bName = b[3];
+                final String id = bAddr + ":" + bPort;
+                // ★奶龙客户端: 用户删过这个内置代理就别再自动加回来(否则无法手动换代理)
+                if (deleted != null && deleted.contains(id)) {
+                    continue;
+                }
+                ProxyInfo found = null;
+                for (ProxyInfo p : proxyList) {
+                    if (bAddr.equals(p.address) && p.port == bPort && bSecret.equals(p.secret)) {
+                        found = p;
+                        break;
+                    }
+                }
+                if (found != null) {
+                    found.name = bName;
+                    found.builtIn = true;
+                } else {
+                    ProxyInfo info = new ProxyInfo(bAddr, bPort, "", "", bSecret);
+                    info.name = bName;
+                    info.builtIn = true;
+                    proxyList.add(info);
                 }
             }
-            ProxyInfo info = new ProxyInfo(bAddr, bPort, "", "", bSecret);
-            info.name = "代理1";
-            info.builtIn = true;
-            proxyList.add(0, info);
+
+            // ★奶龙客户端: currentProxy空时按当前代理设置重新挂到对应内置代理(迁移后重连香港1)
+            if (currentProxy == null) {
+                SharedPreferences prefs = MessagesController.getGlobalMainSettings();
+                String curIp = prefs.getString("proxy_ip", "");
+                int curPort = prefs.getInt("proxy_port", 0);
+                if (!TextUtils.isEmpty(curIp)) {
+                    for (ProxyInfo p : proxyList) {
+                        if (curIp.equals(p.address) && p.port == curPort) {
+                            currentProxy = p;
+                            break;
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            FileLog.e(e);
+        }
+    }
+
+    // ★奶龙客户端: 清理旧内置代理209.141.48.185, 正在使用则无缝迁移到香港服务器1
+    private static void migrateOldBuiltIn() {
+        try {
+            final String oldAddr = "209.141.48.185";
+            final int oldPort = 443;
+            ProxyInfo old = null;
+            for (ProxyInfo p : proxyList) {
+                if (oldAddr.equals(p.address) && p.port == oldPort) {
+                    old = p;
+                    break;
+                }
+            }
+            if (old != null) {
+                if (currentProxy == old) {
+                    currentProxy = null;
+                }
+                proxyList.remove(old);
+            }
+            SharedPreferences prefs = MessagesController.getGlobalMainSettings();
+            if (oldAddr.equals(prefs.getString("proxy_ip", ""))) {
+                final String[] hk1 = BUILTIN_PROXIES[0];
+                final int hk1Port = Integer.parseInt(hk1[1]);
+                final boolean enabled = prefs.getBoolean("proxy_enabled", false);
+                prefs.edit()
+                        .putString("proxy_ip", hk1[0])
+                        .putInt("proxy_port", hk1Port)
+                        .putString("proxy_secret", hk1[2])
+                        .putString("proxy_user", "")
+                        .putString("proxy_pass", "")
+                        .apply();
+                if (enabled) {
+                    AndroidUtilities.runOnUIThread(() -> {
+                        try {
+                            ConnectionsManager.setProxySettings(true, hk1[0], hk1Port, "", "", hk1[2]);
+                        } catch (Exception ignore) {}
+                    });
+                }
+            }
         } catch (Exception e) {
             FileLog.e(e);
         }
@@ -1825,11 +1906,13 @@ public class SharedConfig {
                 ConnectionsManager.setProxySettings(false, "", 0, "", "", "");
             }
         }
-        // ★奶龙客户端: 修复"内置代理删除后又自动回来导致无法手动更新" - 记住内置代理被删, 启动不再重加
+        // ★奶龙客户端: 修复"内置代理删除后又自动回来导致无法手动更新" - 按IP:端口记住被删的内置代理, 启动不再重加
         if (proxyInfo != null && proxyInfo.builtIn) {
             try {
-                ApplicationLoader.applicationContext.getSharedPreferences("nailong_proxy", Context.MODE_PRIVATE)
-                        .edit().putBoolean("builtin_deleted", true).apply();
+                SharedPreferences np = ApplicationLoader.applicationContext.getSharedPreferences("nailong_proxy", Context.MODE_PRIVATE);
+                java.util.Set<String> deleted = new java.util.HashSet<>(np.getStringSet("builtin_deleted_ids", new java.util.HashSet<>()));
+                deleted.add(proxyInfo.address + ":" + proxyInfo.port);
+                np.edit().putStringSet("builtin_deleted_ids", deleted).apply();
             } catch (Exception ignore) {}
         }
         proxyList.remove(proxyInfo);
